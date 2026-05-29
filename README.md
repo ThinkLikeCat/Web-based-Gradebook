@@ -36,6 +36,5 @@ server/
 │   ├── integration/              # Интеграционные тесты
 │   └── e2e/                      # E2E-тесты
 ├── package.json
-├── tsconfig.json
-└── jest.config.js
+└── tsconfig.json
 ```
