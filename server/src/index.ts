@@ -6,6 +6,10 @@ async function main() {
   const app = await createServer();
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    console.log(`http://localhost:${PORT}/api/students/:id/schedule`);
+    console.log(`http://localhost:${PORT}/api/students/:id/journal`);
+    console.log(`http://localhost:${PORT}/api/students/:id/subjects/:subjectId`);
+    console.log(`http://localhost:${PORT}/api/students/:id/labs/:labId`);
   });
 }
 
