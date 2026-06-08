@@ -1,5 +1,6 @@
 import { StudentUseCase } from '../ports/in/student.usecase';
 import { StudentRepository } from '../../infrastructure/database/repositories/student.repository';
+import { NotFoundError } from '../../domain/errors/NotFoundError';
 import { StudentScheduleDto } from '../dtos/student-schedule.dto';
 import { StudentJournalDto } from '../dtos/student-journal.dto';
 import { StudentSubjectProgressDto } from '../dtos/student-subject.dto';
@@ -11,7 +12,7 @@ export class StudentUseCaseImpl implements StudentUseCase {
   async getSchedule(studentId: string): Promise<StudentScheduleDto> {
     const student = await this.repository.findStudentById(studentId);
     if (!student) {
-      throw new Error('Student not found');
+      throw new NotFoundError('Student not found');
     }
 
     const scheduleEntries = await this.repository.findScheduleByStudentId(studentId);
@@ -34,7 +35,7 @@ export class StudentUseCaseImpl implements StudentUseCase {
   async getJournal(studentId: string): Promise<StudentJournalDto> {
     const student = await this.repository.findStudentById(studentId);
     if (!student) {
-      throw new Error('Student not found');
+      throw new NotFoundError('Student not found');
     }
 
     const grades = await this.repository.findGradesByStudentId(studentId);
@@ -76,12 +77,12 @@ export class StudentUseCaseImpl implements StudentUseCase {
   async getSubjectProgress(studentId: string, subjectId: string): Promise<StudentSubjectProgressDto> {
     const student = await this.repository.findStudentById(studentId);
     if (!student) {
-      throw new Error('Student not found');
+      throw new NotFoundError('Student not found');
     }
 
     const course = await this.repository.findCourseById(subjectId);
     if (!course) {
-      throw new Error('Subject not found');
+      throw new NotFoundError('Subject not found');
     }
 
     const grades = (await this.repository.findGradesByStudentId(studentId)).filter((grade) => grade.subjectId === subjectId);
@@ -112,12 +113,12 @@ export class StudentUseCaseImpl implements StudentUseCase {
   async getLabDetails(studentId: string, labId: string): Promise<StudentLabDetailDto> {
     const student = await this.repository.findStudentById(studentId);
     if (!student) {
-      throw new Error('Student not found');
+      throw new NotFoundError('Student not found');
     }
 
     const lab = await this.repository.findLabWorkById(labId);
     if (!lab) {
-      throw new Error('Lab not found');
+      throw new NotFoundError('Lab not found');
     }
 
     const submission = await this.repository.findLabSubmission(studentId, labId);

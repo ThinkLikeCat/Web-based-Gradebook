@@ -13,6 +13,11 @@ const students: Student[] = [
   new Student(new StudentId('student-001'), 'Иван Иванов', 'Группа 101'),
 ];
 
+const studentCourses: { studentId: string; courseId: string }[] = [
+  { studentId: 'student-001', courseId: 'course-001' },
+  { studentId: 'student-001', courseId: 'course-002' },
+];
+
 const courses: Course[] = [
   new Course(new CourseId('course-001'), 'Математика', 'Преп. Петров', [
     { day: 'Понедельник', time: '09:00-10:30', room: 'Ауд. 12' },
@@ -24,15 +29,15 @@ const courses: Course[] = [
 ];
 
 const grades: Grade[] = [
-  new Grade('course-001', 'lab', 85, '2026-05-15'),
-  new Grade('course-001', 'test', 92, '2026-05-20'),
-  new Grade('course-002', 'exam', 78, '2026-05-18'),
+  new Grade('student-001', 'course-001', 'lab', 85, '2026-05-15'),
+  new Grade('student-001', 'course-001', 'test', 92, '2026-05-20'),
+  new Grade('student-001', 'course-002', 'exam', 78, '2026-05-18'),
 ];
 
 const attendance: Attendance[] = [
-  new Attendance('course-001', '2026-05-12', 'present'),
-  new Attendance('course-001', '2026-05-19', 'late'),
-  new Attendance('course-002', '2026-05-13', 'absent'),
+  new Attendance('student-001', 'course-001', '2026-05-12', 'present'),
+  new Attendance('student-001', 'course-001', '2026-05-19', 'late'),
+  new Attendance('student-001', 'course-002', '2026-05-13', 'absent'),
 ];
 
 const labs: LabWork[] = [
@@ -55,19 +60,24 @@ export class InMemoryStudentRepository implements StudentRepository {
   async findScheduleByStudentId(studentId: string): Promise<Array<{ course: Course }>> {
     const student = await this.findStudentById(studentId);
     if (!student) return [];
-    return courses.map((course) => ({ course }));
+    const enrolledCourseIds = studentCourses
+      .filter((sc) => sc.studentId === studentId)
+      .map((sc) => sc.courseId);
+    return courses
+      .filter((course) => enrolledCourseIds.includes(course.id.value))
+      .map((course) => ({ course }));
   }
 
   async findGradesByStudentId(studentId: string): Promise<Grade[]> {
     const student = await this.findStudentById(studentId);
     if (!student) return [];
-    return grades;
+    return grades.filter((grade) => grade.studentId === studentId);
   }
 
   async findAttendanceByStudentId(studentId: string): Promise<Attendance[]> {
     const student = await this.findStudentById(studentId);
     if (!student) return [];
-    return attendance;
+    return attendance.filter((record) => record.studentId === studentId);
   }
 
   async findCourseById(courseId: string): Promise<Course | null> {

@@ -2,11 +2,15 @@ export type GradeType = 'lab' | 'exam' | 'practice' | 'test' | 'oral';
 
 export class Grade {
   constructor(
+    public readonly studentId: string,
     public readonly subjectId: string,
     public readonly type: GradeType,
     public readonly value: number,
     public readonly date: string,
   ) {
+    if (!studentId || studentId.trim().length === 0) {
+      throw new Error('Grade studentId is required');
+    }
     if (!subjectId || subjectId.trim().length === 0) {
       throw new Error('Grade subjectId is required');
     }
