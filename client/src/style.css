@@ -1,0 +1,1003 @@
+:root {
+  color: #1d2939;
+  background: #e7f3fb;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.9), transparent 26rem),
+    linear-gradient(135deg, #cfe3f5 0%, #e9f5fb 44%, #f8fbff 100%);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+}
+
+.login-card {
+  width: min(920px, 100%);
+  min-height: 480px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
+  overflow: hidden;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 28px 70px rgba(16, 93, 144, 0.2);
+}
+
+.login-main,
+.login-switch {
+  padding: 46px;
+}
+
+.login-title {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 34px;
+}
+
+.login-title svg {
+  color: #0879bd;
+}
+
+.login-title h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  letter-spacing: 0;
+}
+
+.login-title p,
+.page-head p {
+  margin: 6px 0 0;
+  color: #667085;
+}
+
+.login-form {
+  display: grid;
+  gap: 18px;
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  color: #344054;
+  font-weight: 700;
+}
+
+input,
+select {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid #d0d5dd;
+  border-radius: 10px;
+  background: #fff;
+  color: #1d2939;
+  padding: 0 14px;
+  outline: none;
+}
+
+input:focus,
+select:focus {
+  border-color: #0ba5ec;
+  box-shadow: 0 0 0 4px rgba(11, 165, 236, 0.12);
+}
+
+.primary-button,
+.login-switch button,
+.modal-actions button {
+  min-height: 46px;
+  border: 0;
+  border-radius: 10px;
+  padding: 0 18px;
+  font-weight: 800;
+}
+
+.primary-button {
+  background: #0879bd;
+  color: white;
+  box-shadow: 0 10px 24px rgba(8, 121, 189, 0.24);
+}
+
+.primary-button:disabled {
+  opacity: 0.7;
+}
+
+.login-switch {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: linear-gradient(160deg, #0879bd, #08a7d8);
+  color: white;
+}
+
+.login-switch span {
+  font-size: 1.7rem;
+  font-weight: 900;
+}
+
+.login-switch p {
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.6;
+}
+
+.login-switch button {
+  width: fit-content;
+  background: rgba(255, 255, 255, 0.95);
+  color: #0879bd;
+}
+
+.form-error {
+  margin: 0;
+  color: #c11574;
+  font-weight: 700;
+}
+
+.shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  padding: 24px;
+  gap: 24px;
+}
+
+.shell--journal {
+  grid-template-columns: 230px minmax(0, 1fr);
+  padding: 16px;
+  gap: 16px;
+}
+
+.sidebar {
+  position: sticky;
+  top: 24px;
+  height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  border-radius: 26px;
+  background: linear-gradient(180deg, #0879bd 0%, #08a7d8 100%);
+  color: white;
+  box-shadow: 0 24px 55px rgba(8, 121, 189, 0.28);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.25rem;
+  font-weight: 900;
+}
+
+.profile {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 34px 0;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.profile small {
+  display: block;
+  margin-top: 3px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #fff;
+  color: #0879bd;
+}
+
+.nav {
+  display: grid;
+  gap: 10px;
+}
+
+.nav button,
+.logout {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 46px;
+  border: 0;
+  border-radius: 12px;
+  padding: 0 14px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 800;
+  text-align: left;
+}
+
+.nav button.active,
+.nav button:hover,
+.logout:hover {
+  background: rgba(5, 91, 145, 0.38);
+  color: white;
+}
+
+.logout {
+  margin-top: auto;
+}
+
+.workspace {
+  min-width: 0;
+  padding: 8px 0;
+}
+
+.shell--journal .workspace {
+  padding: 0;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 24px;
+  align-items: start;
+}
+
+.content-column,
+.right-column,
+.teacher-home {
+  display: grid;
+  gap: 22px;
+}
+
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+  padding: 10px 4px;
+}
+
+.eyebrow {
+  color: #0879bd;
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+}
+
+.page-head h1 {
+  margin: 4px 0 0;
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.panel {
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.86);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 18px 38px rgba(50, 92, 125, 0.1);
+  padding: 22px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  color: #0879bd;
+}
+
+.section-title h2 {
+  margin: 0;
+  font-size: 1.12rem;
+  color: #1d2939;
+}
+
+.deadline-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.deadline-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 14px;
+  min-height: 116px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid #e4e7ec;
+  background: #fff;
+}
+
+.deadline-card span,
+.lesson-row span,
+.exam-list span {
+  display: block;
+  color: #667085;
+  margin-top: 5px;
+}
+
+.deadline-card p {
+  margin: 0;
+  color: #667085;
+}
+
+.deadline-card b {
+  align-self: end;
+  justify-self: end;
+  border-radius: 999px;
+  background: #e0f2fe;
+  color: #0879bd;
+  padding: 5px 10px;
+  font-size: 0.82rem;
+}
+
+.deadline-card.today b {
+  background: #fff1f3;
+  color: #c01048;
+}
+
+.lesson-list,
+.exam-list {
+  display: grid;
+  gap: 12px;
+}
+
+.lesson-row {
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px dashed #d0d5dd;
+}
+
+.lesson-row:last-child {
+  border-bottom: 0;
+}
+
+.lesson-row time,
+.exam-list time {
+  color: #0879bd;
+  font-weight: 900;
+}
+
+.planned-work-row {
+  border-radius: 14px;
+  border: 1px solid #cfe7f7;
+  background: #f5fbff;
+  padding: 14px;
+}
+
+.planned-work-row b {
+  border-radius: 999px;
+  background: #e0f2fe;
+  color: #0879bd;
+  padding: 6px 10px;
+}
+
+.calendar-weekdays,
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  text-align: center;
+}
+
+.calendar-weekdays {
+  margin-bottom: 10px;
+  color: #98a2b3;
+  font-weight: 800;
+  font-size: 0.78rem;
+}
+
+.calendar-grid button {
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #344054;
+  font-weight: 800;
+}
+
+.calendar-grid button.current {
+  background: #0879bd;
+  color: white;
+  box-shadow: 0 10px 22px rgba(8, 121, 189, 0.28);
+}
+
+.exam-list article {
+  padding: 14px 0;
+  border-bottom: 1px dashed #d0d5dd;
+}
+
+.exam-list article:last-child {
+  border-bottom: 0;
+}
+
+.teacher-select {
+  max-width: 760px;
+}
+
+.select-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.stat-card {
+  min-height: 150px;
+  display: grid;
+  gap: 8px;
+  align-content: center;
+  padding: 24px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 16px 36px rgba(50, 92, 125, 0.1);
+}
+
+.stat-card svg {
+  color: #0879bd;
+}
+
+.stat-card strong {
+  font-size: 2rem;
+}
+
+.teacher-schedule-page {
+  display: grid;
+  gap: 20px;
+}
+
+.schedule-editor-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.teacher-schedule-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.teacher-schedule-form .form-wide,
+.teacher-schedule-form .primary-button {
+  grid-column: 1 / -1;
+}
+
+.planned-list {
+  display: grid;
+  gap: 12px;
+}
+
+.planned-item {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid #e4e7ec;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.planned-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+}
+
+.planned-icon--lab {
+  background: #e0f2fe;
+  color: #0879bd;
+}
+
+.planned-icon--test {
+  background: #fff7ed;
+  color: #b54708;
+}
+
+.planned-item strong,
+.planned-item span {
+  display: block;
+}
+
+.planned-item span {
+  margin-top: 4px;
+  color: #667085;
+}
+
+.planned-dates {
+  display: grid;
+  gap: 4px;
+  justify-items: end;
+  color: #344054;
+  white-space: nowrap;
+}
+
+.planned-dates small {
+  color: #667085;
+}
+
+.teacher-journal-page {
+  min-width: 0;
+}
+
+.teacher-context {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  width: 100%;
+  margin: 0 0 12px;
+  border-radius: 14px;
+  background: #fff;
+  padding: 10px 12px 10px 16px;
+  box-shadow: 0 10px 24px rgba(50, 92, 125, 0.1);
+}
+
+.teacher-context > div {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  min-width: 0;
+}
+
+.teacher-journal-filters {
+  flex-wrap: wrap;
+}
+
+.teacher-journal-filters label {
+  min-width: 210px;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: #667085;
+}
+
+.teacher-journal-filters select {
+  min-height: 38px;
+  border-radius: 9px;
+  font-weight: 800;
+}
+
+.teacher-journal-page .journal-table {
+  min-width: 1660px;
+}
+
+.teacher-journal-page .journal-table .subject-col {
+  width: 220px;
+  min-width: 220px;
+  max-width: 220px;
+}
+
+.edit-toggle {
+  min-height: 38px;
+  border: 1px solid #cfe7f7;
+  border-radius: 10px;
+  background: #eff8ff;
+  color: #0879bd;
+  padding: 0 14px;
+  font-weight: 900;
+}
+
+.edit-toggle.active {
+  border-color: #0879bd;
+  background: #0879bd;
+  color: #fff;
+}
+
+.journal-page {
+  min-width: 0;
+  width: 100%;
+}
+
+.journal-head {
+  align-items: center;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  padding: 5px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.tabs button {
+  min-height: 38px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #667085;
+  padding: 0 16px;
+  font-weight: 900;
+}
+
+.tabs button.active {
+  background: #0879bd;
+  color: white;
+}
+
+.journal-wrap {
+  overflow: auto;
+  width: 100%;
+  max-width: none;
+  min-height: calc(100vh - 190px);
+  border: 1px solid #d7e3ea;
+  border-radius: 14px;
+  background: #f8fbfd;
+  box-shadow: 0 20px 44px rgba(50, 92, 125, 0.14);
+}
+
+.journal-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 1520px;
+  min-height: calc(100vh - 190px);
+  width: max-content;
+  color: #475467;
+  font-size: 0.78rem;
+}
+
+.journal-table th,
+.journal-table td {
+  width: 31px;
+  height: 34px;
+  border-right: 1px solid #e4e7ec;
+  border-bottom: 1px solid #e4e7ec;
+  padding: 0;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.journal-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #eef6fb;
+  color: #344054;
+  font-weight: 900;
+}
+
+.journal-table .subject-col {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  width: 156px;
+  min-width: 156px;
+  max-width: 156px;
+  padding: 0 10px;
+  background: #ffffff;
+  text-align: left;
+  color: #263747;
+  font-weight: 900;
+  box-shadow: 8px 0 14px rgba(15, 23, 42, 0.04);
+}
+
+.journal-table thead .subject-col {
+  z-index: 8;
+}
+
+.journal-table .corner {
+  height: 48px;
+  background:
+    linear-gradient(18deg, transparent 49%, #b9d8e8 50%, transparent 51%),
+    #ffffff;
+}
+
+.journal-table .corner span,
+.journal-table .corner small {
+  display: block;
+}
+
+.journal-table .corner small {
+  text-align: right;
+  font-size: 0.7rem;
+}
+
+.journal-table .average-col {
+  position: sticky;
+  right: 0;
+  z-index: 4;
+  width: 58px;
+  min-width: 58px;
+  background: #ffffff;
+  color: #05669d;
+  font-weight: 900;
+  box-shadow: -8px 0 14px rgba(15, 23, 42, 0.04);
+}
+
+.journal-table thead .average-col {
+  z-index: 8;
+}
+
+.journal-table tbody td {
+  background: #fffdf6;
+  font-weight: 800;
+  color: #475467;
+  transition: background 120ms ease, color 120ms ease, box-shadow 120ms ease;
+}
+
+.journal-page.is-editing .journal-table tbody td {
+  cursor: cell;
+}
+
+.journal-page.is-editing .journal-wrap {
+  border-color: #0879bd;
+  box-shadow: 0 20px 44px rgba(8, 121, 189, 0.18);
+}
+
+.journal-table tbody tr:nth-child(4n) .subject-col,
+.journal-table tbody tr:nth-child(4n) td {
+  background: #f2f9fd;
+}
+
+.journal-table tbody tr:hover td,
+.journal-table tbody tr:hover .subject-col {
+  background: #e4f5fc;
+}
+
+.journal-table tbody td:hover {
+  background: #d9f0fb !important;
+  color: #0b4f79;
+  outline: 2px solid #0ba5ec;
+  outline-offset: -2px;
+}
+
+.journal-table td.filled {
+  position: relative;
+  color: #263747;
+  background: #ffffff;
+}
+
+.journal-table td.filled::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 7px;
+  background: transparent;
+}
+
+.journal-table td.journal-cell {
+  isolation: isolate;
+}
+
+.cell-stack {
+  position: relative;
+  z-index: 1;
+  display: inline-grid;
+  min-width: 18px;
+  min-height: 26px;
+  align-content: center;
+  justify-items: center;
+  line-height: 1;
+  font-weight: 900;
+}
+
+.cell-stack span + span {
+  width: 100%;
+  margin-top: 3px;
+  padding-top: 3px;
+  border-top: 1px solid #98a2b3;
+}
+
+.cell-stack--single {
+  min-height: 18px;
+}
+
+.journal-table td.high-value {
+  color: #475467;
+}
+
+.journal-table td.high-value::before {
+  background: transparent;
+}
+
+.journal-table td.normal-value {
+  color: #475467;
+}
+
+.journal-table td.normal-value::before {
+  background: transparent;
+}
+
+.journal-table td.low-value {
+  color: #475467;
+}
+
+.journal-table td.low-value::before {
+  background: transparent;
+}
+
+.journal-table td.absence-value {
+  color: #475467;
+}
+
+.journal-table td.absence-value::before {
+  background: transparent;
+}
+
+.journal-table td.late-value {
+  color: #475467;
+}
+
+.journal-table td.late-value::before {
+  background: transparent;
+}
+
+.journal-table td.credit-value {
+  color: #475467;
+}
+
+.journal-table td.credit-value::before {
+  background: transparent;
+}
+
+.month-head {
+  height: 26px;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0;
+  background: #dff3fd !important;
+}
+
+.day-head {
+  height: 32px;
+  background: #f8fbfd !important;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.35);
+}
+
+.cell-modal {
+  width: min(430px, 100%);
+  display: grid;
+  gap: 14px;
+  border-radius: 18px;
+  background: white;
+  padding: 24px;
+  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.28);
+}
+
+.cell-modal h2,
+.cell-modal p {
+  margin: 0;
+}
+
+.cell-modal p {
+  color: #667085;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.quick-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.quick-values button {
+  min-height: 34px;
+  border: 1px solid #cfe7f7;
+  border-radius: 9px;
+  background: #eff8ff;
+  color: #0879bd;
+  padding: 0 12px;
+  font-weight: 900;
+}
+
+.late-select {
+  font-size: 0.9rem;
+}
+
+.modal-actions button:first-child {
+  background: #eef2f6;
+  color: #344054;
+}
+
+@media (max-width: 980px) {
+  .shell,
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+  }
+
+  .journal-wrap {
+    max-width: calc(100vw - 48px);
+  }
+
+  .deadline-list,
+  .select-grid,
+  .schedule-editor-grid,
+  .stat-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .login-card {
+    grid-template-columns: 1fr;
+  }
+
+  .login-main,
+  .login-switch,
+  .panel {
+    padding: 22px;
+  }
+
+  .shell {
+    padding: 14px;
+  }
+
+  .page-head,
+  .journal-head,
+  .teacher-schedule-form,
+  .lesson-row {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+
+  .teacher-schedule-form .form-wide,
+  .teacher-schedule-form .primary-button {
+    grid-column: auto;
+  }
+
+  .planned-item {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+
+  .planned-dates {
+    grid-column: 2;
+    justify-items: start;
+  }
+}
