@@ -1,0 +1,300 @@
+RaceManager/
+├── client/
+│   ├── public/
+│   │   └── assets/
+│   │       ├── images/
+│   │       ├── logos/
+│   │       ├── cars/
+│   │       ├── teams/
+│   │       ├── championships/
+│   │       └── media/
+│   │
+│   ├── src/
+│   │   ├── api/
+│   │   │   ├── auth.ts
+│   │   │   ├── users.ts
+│   │   │   ├── championships.ts
+│   │   │   ├── calendar.ts
+│   │   │   ├── teams.ts
+│   │   │   ├── vehicles.ts
+│   │   │   ├── registrations.ts
+│   │   │   ├── results.ts
+│   │   │   ├── media.ts
+│   │   │   └── partners.ts
+│   │   │
+│   │   ├── components/
+│   │   │   ├── layout/
+│   │   │   │   ├── Header.tsx
+│   │   │   │   ├── Footer.tsx
+│   │   │   │   ├── Navigation.tsx
+│   │   │   │   └── TeamsMegaMenu.tsx
+│   │   │   │
+│   │   │   ├── common/
+│   │   │   │   ├── Button.tsx
+│   │   │   │   ├── Modal.tsx
+│   │   │   │   ├── VideoModal.tsx
+│   │   │   │   ├── SectionHeading.tsx
+│   │   │   │   ├── Table.tsx
+│   │   │   │   └── Badge.tsx
+│   │   │   │
+│   │   │   ├── championships/
+│   │   │   │   ├── ChampionshipCard.tsx
+│   │   │   │   ├── ChampionshipHero.tsx
+│   │   │   │   ├── StageList.tsx
+│   │   │   │   ├── TimingBlock.tsx
+│   │   │   │   ├── TrackMap.tsx
+│   │   │   │   └── StandingsTable.tsx
+│   │   │   │
+│   │   │   ├── calendar/
+│   │   │   │   ├── CalendarSeriesBlock.tsx
+│   │   │   │   ├── CalendarEventCard.tsx
+│   │   │   │   └── RegistrationWindow.tsx
+│   │   │   │
+│   │   │   ├── teams/
+│   │   │   │   ├── TeamCard.tsx
+│   │   │   │   ├── TeamHero.tsx
+│   │   │   │   ├── DriverCard.tsx
+│   │   │   │   └── TeamGallery.tsx
+│   │   │   │
+│   │   │   ├── account/
+│   │   │   │   ├── AccountSidebar.tsx
+│   │   │   │   ├── AccountStats.tsx
+│   │   │   │   ├── VehicleCard.tsx
+│   │   │   │   ├── VehicleModal.tsx
+│   │   │   │   ├── ApplicationCard.tsx
+│   │   │   │   └── RoleBadge.tsx
+│   │   │   │
+│   │   │   └── media/
+│   │   │       ├── NewsCard.tsx
+│   │   │       ├── VideoCard.tsx
+│   │   │       └── GalleryGrid.tsx
+│   │   │
+│   │   ├── data/
+│   │   │   ├── mockData.ts
+│   │   │   ├── users.json
+│   │   │   ├── registrations.json
+│   │   │   ├── championships.json
+│   │   │   ├── teams.json
+│   │   │   └── results.json
+│   │   │
+│   │   ├── pages/
+│   │   │   ├── public/
+│   │   │   │   ├── Home.tsx
+│   │   │   │   ├── Championships.tsx
+│   │   │   │   ├── ChampionshipDetails.tsx
+│   │   │   │   ├── Calendar.tsx
+│   │   │   │   ├── Teams.tsx
+│   │   │   │   ├── TeamDetails.tsx
+│   │   │   │   ├── Media.tsx
+│   │   │   │   └── Login.tsx
+│   │   │   │
+│   │   │   ├── account/
+│   │   │   │   ├── Account.tsx
+│   │   │   │   ├── Profile.tsx
+│   │   │   │   ├── Vehicles.tsx
+│   │   │   │   ├── Applications.tsx
+│   │   │   │   └── Settings.tsx
+│   │   │   │
+│   │   │   ├── organizer/
+│   │   │   │   ├── OrganizerDashboard.tsx
+│   │   │   │   ├── CreateEvent.tsx
+│   │   │   │   ├── EditEvent.tsx
+│   │   │   │   └── EventRegistrations.tsx
+│   │   │   │
+│   │   │   └── judge/
+│   │   │       ├── JudgeDashboard.tsx
+│   │   │       ├── ResultsEditor.tsx
+│   │   │       └── Penalties.tsx
+│   │   │
+│   │   ├── router/
+│   │   │   └── AppRouter.tsx
+│   │   │
+│   │   ├── store/
+│   │   │   ├── authStore.ts
+│   │   │   └── appStore.ts
+│   │   │
+│   │   ├── hooks/
+│   │   │   ├── useAuth.ts
+│   │   │   ├── useCurrentUser.ts
+│   │   │   └── useCountdown.ts
+│   │   │
+│   │   ├── utils/
+│   │   │   ├── formatDate.ts
+│   │   │   ├── formatTime.ts
+│   │   │   ├── youtube.ts
+│   │   │   └── roles.ts
+│   │   │
+│   │   ├── types.ts
+│   │   ├── App.tsx
+│   │   ├── main.tsx
+│   │   └── style.css
+│   │
+│   ├── index.html
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── tsconfig.json
+│   └── vite.config.ts
+│
+├── server/
+│   ├── RaceManager.Api/
+│   │   ├── Controllers/
+│   │   │   ├── AuthController.cs
+│   │   │   ├── UsersController.cs
+│   │   │   ├── ChampionshipsController.cs
+│   │   │   ├── CalendarController.cs
+│   │   │   ├── TeamsController.cs
+│   │   │   ├── VehiclesController.cs
+│   │   │   ├── RegistrationsController.cs
+│   │   │   ├── ResultsController.cs
+│   │   │   ├── MediaController.cs
+│   │   │   └── PartnersController.cs
+│   │   │
+│   │   ├── Contracts/
+│   │   │   ├── Auth/
+│   │   │   ├── Users/
+│   │   │   ├── Championships/
+│   │   │   ├── Events/
+│   │   │   ├── Teams/
+│   │   │   ├── Vehicles/
+│   │   │   ├── Registrations/
+│   │   │   └── Results/
+│   │   │
+│   │   ├── Middleware/
+│   │   │   ├── ErrorHandlingMiddleware.cs
+│   │   │   └── RoleMiddleware.cs
+│   │   │
+│   │   ├── Extensions/
+│   │   │   ├── ServiceCollectionExtensions.cs
+│   │   │   └── WebApplicationExtensions.cs
+│   │   │
+│   │   ├── Program.cs
+│   │   ├── appsettings.json
+│   │   └── RaceManager.Api.csproj
+│   │
+│   ├── RaceManager.Domain/
+│   │   ├── Entities/
+│   │   │   ├── User.cs
+│   │   │   ├── DriverProfile.cs
+│   │   │   ├── Team.cs
+│   │   │   ├── Vehicle.cs
+│   │   │   ├── Championship.cs
+│   │   │   ├── Stage.cs
+│   │   │   ├── Event.cs
+│   │   │   ├── Registration.cs
+│   │   │   ├── Result.cs
+│   │   │   ├── Penalty.cs
+│   │   │   ├── Track.cs
+│   │   │   ├── MediaItem.cs
+│   │   │   └── Partner.cs
+│   │   │
+│   │   ├── Enums/
+│   │   │   ├── UserRole.cs
+│   │   │   ├── Discipline.cs
+│   │   │   ├── EventType.cs
+│   │   │   ├── RegistrationStatus.cs
+│   │   │   ├── ResultStatus.cs
+│   │   │   └── DriveType.cs
+│   │   │
+│   │   ├── ValueObjects/
+│   │   │   ├── Email.cs
+│   │   │   ├── PhoneNumber.cs
+│   │   │   ├── FullName.cs
+│   │   │   └── LapTime.cs
+│   │   │
+│   │   ├── Errors/
+│   │   │   ├── DomainError.cs
+│   │   │   └── ValidationError.cs
+│   │   │
+│   │   └── RaceManager.Domain.csproj
+│   │
+│   ├── RaceManager.Application/
+│   │   ├── DTOs/
+│   │   │   ├── AuthDto.cs
+│   │   │   ├── UserDto.cs
+│   │   │   ├── ChampionshipDto.cs
+│   │   │   ├── EventDto.cs
+│   │   │   ├── TeamDto.cs
+│   │   │   ├── VehicleDto.cs
+│   │   │   ├── RegistrationDto.cs
+│   │   │   └── ResultDto.cs
+│   │   │
+│   │   ├── Interfaces/
+│   │   │   ├── IAuthService.cs
+│   │   │   ├── IUserRepository.cs
+│   │   │   ├── IChampionshipRepository.cs
+│   │   │   ├── IEventRepository.cs
+│   │   │   ├── ITeamRepository.cs
+│   │   │   ├── IVehicleRepository.cs
+│   │   │   ├── IRegistrationRepository.cs
+│   │   │   └── IResultRepository.cs
+│   │   │
+│   │   ├── UseCases/
+│   │   │   ├── Auth/
+│   │   │   ├── Users/
+│   │   │   ├── Championships/
+│   │   │   ├── Events/
+│   │   │   ├── Registrations/
+│   │   │   └── Results/
+│   │   │
+│   │   ├── Services/
+│   │   │   ├── AuthService.cs
+│   │   │   ├── ChampionshipService.cs
+│   │   │   ├── EventService.cs
+│   │   │   ├── RegistrationService.cs
+│   │   │   └── ResultService.cs
+│   │   │
+│   │   └── RaceManager.Application.csproj
+│   │
+│   ├── RaceManager.Infrastructure/
+│   │   ├── Database/
+│   │   │   ├── RaceManagerDbContext.cs
+│   │   │   ├── Migrations/
+│   │   │   └── Seed/
+│   │   │       └── DbSeeder.cs
+│   │   │
+│   │   ├── Repositories/
+│   │   │   ├── UserRepository.cs
+│   │   │   ├── ChampionshipRepository.cs
+│   │   │   ├── EventRepository.cs
+│   │   │   ├── TeamRepository.cs
+│   │   │   ├── VehicleRepository.cs
+│   │   │   ├── RegistrationRepository.cs
+│   │   │   └── ResultRepository.cs
+│   │   │
+│   │   ├── JsonStorage/
+│   │   │   ├── JsonUserRepository.cs
+│   │   │   ├── JsonRegistrationRepository.cs
+│   │   │   └── JsonStorageOptions.cs
+│   │   │
+│   │   ├── External/
+│   │   │   ├── S3MediaStorage.cs
+│   │   │   └── EmailSender.cs
+│   │   │
+│   │   └── RaceManager.Infrastructure.csproj
+│   │
+│   ├── RaceManager.Tests/
+│   │   ├── Unit/
+│   │   ├── Integration/
+│   │   ├── E2E/
+│   │   └── RaceManager.Tests.csproj
+│   │
+│   └── RaceManager.sln
+│
+├── data/
+│   ├── users.json
+│   └── registrations.json
+│
+├── public/
+│   └── ...
+│
+├── index.html
+├── championships.html
+├── calendar.html
+├── teams.html
+├── media.html
+├── account.html
+├── login.html
+├── register.html
+├── styles.css
+├── script.js
+└── README.md
