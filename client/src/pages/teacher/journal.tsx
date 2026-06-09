@@ -41,7 +41,15 @@ export function TeacherJournal({
           {canEdit ? 'Завершить редактирование' : 'Редактировать журнал'}
         </button>
       </div>
-      <Journal role="teacher" canEdit={canEdit} rows={students} cells={cells} leftHeader="ФИО ученика" />
+      <Journal
+        role="teacher"
+        canEdit={canEdit}
+        rows={students}
+        cells={cells}
+        leftHeader="ФИО ученика"
+        cornerTop="Даты занятий"
+        cornerBottom="ФИО ученика"
+      />
     </div>
   );
 }

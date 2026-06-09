@@ -1,20 +1,28 @@
-import { CalendarCheck, CalendarDays, ClipboardList, GraduationCap, LogOut, UserRound } from 'lucide-react';
-import { useState } from 'react';
+import { GraduationCap } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { loginStudent, loginTeacher } from './api/auth';
+import { Sidebar } from './components/layout/Sidebar';
 import { groups } from './data/mockData';
+import { useHashRoute } from './hooks/useHashRoute';
 import { Dashboard } from './pages/student/dashboard';
 import { Journal } from './pages/student/journal';
+import { SettingsPage } from './pages/settings/SettingsPage';
 import { TeacherDashboard } from './pages/teacher/dashboard';
 import { TeacherJournal } from './pages/teacher/journal';
 import { TeacherSchedule } from './pages/teacher/schedule';
-import type { PlannedWork, Role, TeacherChoice, User } from './types';
+import type { PlannedWork, Role, TeacherChoice, ThemeColor, User } from './types';
 
-type Page = 'dashboard' | 'journal' | 'schedule';
+type WorkNotification = {
+  work: PlannedWork;
+  createdAt: number;
+};
 
 export function App() {
   const [user, setUser] = useState<User | null>(null);
-  const [activePage, setActivePage] = useState<Page>('dashboard');
-  const [teacherChoice, setTeacherChoice] = useState<TeacherChoice>({ group: 'Т-291', subject: 'Веб-программирование' });
+  const [activePage, setActivePage] = useHashRoute();
+  const [theme, setTheme] = useState<ThemeColor>('blue');
+  const [teacherChoice, setTeacherChoice] = useState<TeacherChoice>({ group: 'Т-394', subject: 'Веб-программирование' });
+  const [notifications, setNotifications] = useState<WorkNotification[]>([]);
   const [plannedWorks, setPlannedWorks] = useState<PlannedWork[]>([
     {
       id: 'plan-1',
@@ -24,6 +32,7 @@ export function App() {
       title: 'Лабораторная работа №4',
       date: '2026-06-05',
       deadline: '2026-06-12',
+      room: '214',
       comment: 'React Router и подключение API',
     },
     {
@@ -33,9 +42,19 @@ export function App() {
       type: 'required-test',
       title: 'Обязательная контрольная работа',
       date: '2026-06-18',
+      room: '214',
       comment: 'Компоненты, состояние и работа с формами',
     },
   ]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      const now = Date.now();
+      setNotifications((current) => current.filter((notification) => now - notification.createdAt < 120_000));
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, []);
 
   if (!user) {
     return <LoginScreen onLogin={setUser} />;
@@ -44,55 +63,22 @@ export function App() {
   const isTeacher = user.role === 'teacher';
 
   return (
-    <div className={`shell ${activePage === 'journal' ? 'shell--journal' : ''}`}>
-      <aside className="sidebar">
-        <div className="brand">
-          <GraduationCap size={30} />
-          <span>Электронный журнал</span>
-        </div>
-
-        <div className="profile">
-          <div className="avatar">
-            <UserRound size={24} />
-          </div>
-          <div>
-            <strong>{user.fullName}</strong>
-            <small>{isTeacher ? 'Преподаватель' : user.group}</small>
-          </div>
-        </div>
-
-        <nav className="nav">
-          <button className={activePage === 'dashboard' ? 'active' : ''} onClick={() => setActivePage('dashboard')}>
-            <CalendarDays size={18} />
-            Главная
-          </button>
-          <button className={activePage === 'journal' ? 'active' : ''} onClick={() => setActivePage('journal')}>
-            <ClipboardList size={18} />
-            Журнал
-          </button>
-          {isTeacher && (
-            <button className={activePage === 'schedule' ? 'active' : ''} onClick={() => setActivePage('schedule')}>
-              <CalendarCheck size={18} />
-              Расписание
-            </button>
-          )}
-        </nav>
-
-        <button
-          className="logout"
-          onClick={() => {
-            setUser(null);
-            setActivePage('dashboard');
-          }}
-        >
-          <LogOut size={18} />
-          Выход
-        </button>
-      </aside>
+    <div className={`shell ${activePage === 'journal' ? 'shell--journal' : ''}`} data-theme={theme}>
+      <Sidebar
+        user={user}
+        activePage={activePage}
+        onNavigate={setActivePage}
+        onLogout={() => {
+          setUser(null);
+          setActivePage('dashboard');
+        }}
+      />
 
       <main className="workspace">
-        {activePage === 'dashboard' && !isTeacher && <Dashboard user={user} plannedWorks={plannedWorks} />}
-        {activePage === 'journal' && !isTeacher && <Journal role="student" />}
+        {activePage === 'dashboard' && !isTeacher && (
+          <Dashboard user={user} plannedWorks={plannedWorks} notifications={notifications.map((notification) => notification.work)} />
+        )}
+        {activePage === 'journal' && !isTeacher && <Journal role="student" cornerTop="Даты занятий" cornerBottom="Предметы" />}
         {activePage === 'dashboard' && isTeacher && (
           <TeacherDashboard user={user} choice={teacherChoice} onChoiceChange={setTeacherChoice} />
         )}
@@ -101,9 +87,13 @@ export function App() {
           <TeacherSchedule
             choice={teacherChoice}
             items={plannedWorks.filter((work) => work.group === teacherChoice.group)}
-            onAddWork={(work) => setPlannedWorks((current) => [work, ...current])}
+            onAddWork={(work) => {
+              setPlannedWorks((current) => [work, ...current]);
+              setNotifications((current) => [{ work, createdAt: Date.now() }, ...current].slice(0, 5));
+            }}
           />
         )}
+        {activePage === 'settings' && <SettingsPage theme={theme} onThemeChange={setTheme} />}
       </main>
     </div>
   );
@@ -129,6 +119,7 @@ function LoginScreen({ onLogin }: { onLogin: (user: User) => void }) {
           ? await loginStudent({ lastName, birthDate, group })
           : await loginTeacher({ lastName, password });
 
+      window.location.hash = '/dashboard';
       onLogin(nextUser);
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : 'Не удалось войти');

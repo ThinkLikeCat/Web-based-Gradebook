@@ -1,4 +1,4 @@
-import type { Deadline, Exam, JournalCell, ScheduleItem, SubjectRow, User } from '../types';
+import type { Deadline, Exam, JournalCell, ScheduleItem, SubjectRow } from '../types';
 
 export const groups = ['Т-291', 'Т-394', 'ПО-31', 'ИС-22', 'ВЕБ-21'];
 
@@ -52,21 +52,6 @@ export const subjects: SubjectRow[] = [
   { id: 'design', name: 'Веб-дизайн', shortName: 'ВебДизайн' },
   { id: 'db', name: 'Системы управления базами данных', shortName: 'СистУпрБД' },
 ];
-
-export const demoStudent: User = {
-  id: 'student-1',
-  role: 'student',
-  fullName: 'Иванов Иван',
-  lastName: 'Иванов',
-  group: 'Т-291',
-};
-
-export const demoTeacher: User = {
-  id: 'teacher-1',
-  role: 'teacher',
-  fullName: 'Петрова Анна Сергеевна',
-  lastName: 'Петрова',
-};
 
 export const deadlines: Deadline[] = [
   { id: 'd1', subject: 'Веб-программирование', title: 'ЛР 4. Роутинг и API', dueDate: '2026-06-05', status: 'soon' },
