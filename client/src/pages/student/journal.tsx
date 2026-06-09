@@ -313,11 +313,6 @@ function getAverageClass(cells: JournalCell[], subjectId: string) {
   return '';
 }
 
-function getAbsenceCount(cells: JournalCell[], subjectId: string) {
-  const count = cells.filter((cell) => cell.subjectId === subjectId).flatMap((cell) => cell.absences).length;
-  return count || '';
-}
-
 function isMonthStart(dates: string[], index: number) {
   if (index === 0) {
     return false;

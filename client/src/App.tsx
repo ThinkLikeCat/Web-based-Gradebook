@@ -75,7 +75,7 @@ export function App() {
       />
 
       <main className="workspace">
-        {(activePage === 'dashboard' || (activePage === 'schedule' && !isTeacher)) && !isTeacher && (
+        {activePage === 'dashboard' && !isTeacher && (
           <Dashboard user={user} plannedWorks={plannedWorks} notifications={notifications.map((notification) => notification.work)} />
         )}
         {activePage === 'journal' && !isTeacher && <Journal role="student" cornerTop="Даты занятий" cornerBottom="Предметы" />}
