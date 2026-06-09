@@ -16,17 +16,47 @@ export function TeacherSchedule({
   const [labNumber, setLabNumber] = useState('5');
   const [date, setDate] = useState('2026-06-20');
   const [deadline, setDeadline] = useState('2026-06-27');
+  const [room, setRoom] = useState('214');
   const [topic, setTopic] = useState('');
+  const [error, setError] = useState('');
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setError('');
+
+    if (!subject.trim()) {
+      setError('Введите предмет');
+      return;
+    }
+
+    if (!room.trim()) {
+      setError('Введите аудиторию');
+      return;
+    }
+
+    if (kind !== 'exam' && !topic.trim()) {
+      setError('Введите тему работы');
+      return;
+    }
+
+    if (!date) {
+      setError('Укажите дату проведения');
+      return;
+    }
+
+    if (kind === 'lab' && (!deadline || new Date(deadline).getTime() < new Date(date).getTime())) {
+      setError('Дедлайн лабораторной не может быть раньше даты проведения');
+      return;
+    }
 
     const title =
       kind === 'lab'
         ? `Лабораторная работа №${labNumber || '1'}`
         : kind === 'required-test'
           ? 'Обязательная контрольная работа'
-          : 'Контрольная работа';
+          : kind === 'exam'
+            ? 'Экзамен'
+            : 'Контрольная работа';
 
     onAddWork({
       id: crypto.randomUUID(),
@@ -36,7 +66,8 @@ export function TeacherSchedule({
       title,
       date,
       deadline: kind === 'lab' ? deadline : undefined,
-      comment: topic.trim() || (kind === 'lab' ? 'Тема лабораторной будет уточнена преподавателем' : 'Тема контрольной работы'),
+      room: room.trim(),
+      comment: kind === 'exam' ? 'Экзамен по предмету' : topic.trim(),
     });
     setTopic('');
   }
@@ -67,6 +98,7 @@ export function TeacherSchedule({
                 <option value="lab">Лабораторная работа</option>
                 <option value="required-test">Обязательная контрольная работа</option>
                 <option value="test">Контрольная работа</option>
+                <option value="exam">Экзамен</option>
               </select>
             </label>
 
@@ -87,6 +119,11 @@ export function TeacherSchedule({
               <input required type="date" value={date} onChange={(event) => setDate(event.target.value)} />
             </label>
 
+            <label>
+              Аудитория
+              <input value={room} onChange={(event) => setRoom(event.target.value)} placeholder="Например: 214" />
+            </label>
+
             {kind === 'lab' && (
               <label>
                 Дедлайн сдачи
@@ -94,10 +131,14 @@ export function TeacherSchedule({
               </label>
             )}
 
-            <label className="form-wide">
-              Тема работы
-              <input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="Например: формы, валидация, REST API" />
-            </label>
+            {kind !== 'exam' && (
+              <label className="form-wide">
+                Тема работы
+                <input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="Например: формы, валидация, REST API" />
+              </label>
+            )}
+
+            {error && <p className="form-error form-wide">{error}</p>}
 
             <button className="primary-button" type="submit">
               Добавить в расписание
@@ -118,8 +159,13 @@ export function TeacherSchedule({
                   {item.type === 'lab' ? <FlaskConical size={18} /> : <CalendarCheck size={18} />}
                 </div>
                 <div>
-                  <strong>{item.title}</strong>
-                  <span>{item.comment}</span>
+                  <strong>
+                    {item.subject}: {item.title}
+                  </strong>
+                  <span>
+                    {item.comment}
+                    {item.room ? ` · ауд. ${item.room}` : ''}
+                  </span>
                 </div>
                 <div className="planned-dates">
                   <b>{formatDate(item.date)}</b>

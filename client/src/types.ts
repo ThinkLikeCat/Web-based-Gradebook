@@ -1,5 +1,6 @@
 export type Role = 'student' | 'teacher';
 export type JournalMode = 'marks' | 'absences';
+export type ThemeColor = 'blue' | 'black' | 'green' | 'purple' | 'orange';
 
 export type User = {
   id: string;
@@ -37,10 +38,11 @@ export type PlannedWork = {
   id: string;
   group: string;
   subject: string;
-  type: 'lab' | 'required-test' | 'test';
+  type: 'lab' | 'required-test' | 'test' | 'exam';
   title: string;
   date: string;
   deadline?: string;
+  room?: string;
   comment: string;
 };
 

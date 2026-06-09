@@ -1,12 +1,15 @@
 import { journalCells, journalDates, subjects } from '../data/mockData';
 import type { JournalCell, JournalMode } from '../types';
+import { apiRequest } from './client';
 
 export async function getJournalData() {
-  return {
-    dates: journalDates,
-    subjects,
-    cells: journalCells,
-  };
+  return apiRequest('/journal', {
+    mock: () => ({
+      dates: journalDates,
+      subjects,
+      cells: journalCells,
+    }),
+  });
 }
 
 export function validateCellValue(mode: JournalMode, rawValue: string): string[] {
@@ -26,9 +29,21 @@ export function validateCellValue(mode: JournalMode, rawValue: string): string[]
   }
 
   if (mode === 'absences') {
-    const isValidAbsence = (part: string) => part === 'Н' || /^ОП(?::\d{1,3})?$/.test(part);
+    const isValidAbsence = (part: string) => {
+      if (part === 'Н') {
+        return true;
+      }
+
+      const lateMatch = part.match(/^ОП(?::(\d{1,2}))?$/);
+      if (!lateMatch) {
+        return false;
+      }
+
+      const minutes = Number(lateMatch[1] ?? 5);
+      return minutes >= 1 && minutes <= 15;
+    };
     if (!parts.every(isValidAbsence)) {
-      throw new Error('Для пропусков можно вводить Н, ОП, ОП:15 и дробь через /');
+      throw new Error('Для пропусков можно вводить Н, ОП и время опоздания до 15 минут');
     }
   }
 

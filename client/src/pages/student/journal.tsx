@@ -16,17 +16,22 @@ export function Journal({
   rows,
   cells,
   leftHeader = 'Предмет',
+  cornerTop,
+  cornerBottom = 'Даты занятий',
 }: {
   role: Role;
   canEdit?: boolean;
   rows?: SubjectRow[];
   cells?: JournalCell[];
   leftHeader?: string;
+  cornerTop?: string;
+  cornerBottom?: string;
 }) {
   const [mode, setMode] = useState<JournalMode>('marks');
   const [data, setData] = useState<JournalData>({ dates: [], subjects: [], cells: [] });
   const [editing, setEditing] = useState<{ subjectId: string; date: string; value: string; lateMinutes: string } | null>(null);
   const [error, setError] = useState('');
+  const isLateEditing = editing?.value.includes('ОП') ?? false;
 
   useEffect(() => {
     getJournalData().then((journalData) => {
@@ -113,8 +118,8 @@ export function Journal({
           <thead>
             <tr>
               <th className="subject-col corner" rowSpan={2}>
-                <span>{leftHeader}</span>
-                <small>Дата</small>
+                <span>{cornerTop ?? leftHeader}</span>
+                <small>{cornerBottom}</small>
               </th>
               {monthGroups.map((group) => (
                 <th className="month-head" colSpan={group.count} key={group.key}>
@@ -126,8 +131,8 @@ export function Journal({
               </th>
             </tr>
             <tr>
-              {data.dates.map((date) => (
-                <th className="day-head" key={date}>
+              {data.dates.map((date, index) => (
+                <th className={isMonthStart(data.dates, index) ? 'day-head month-start' : 'day-head'} key={date}>
                   {new Date(date).getDate()}
                 </th>
               ))}
@@ -137,10 +142,17 @@ export function Journal({
             {data.subjects.map((subject) => (
               <tr key={subject.id}>
                 <th className="subject-col">{subject.shortName}</th>
-                {data.dates.map((date) => {
+                {data.dates.map((date, index) => {
                   const text = getCellText(subject.id, date);
                   const values = getCellValues(subject.id, date);
-                  const cellClassName = ['journal-cell', getValueClass(text), text ? 'filled' : ''].filter(Boolean).join(' ');
+                  const cellClassName = [
+                    'journal-cell',
+                    getValueClass(text),
+                    isMonthStart(data.dates, index) ? 'month-start' : '',
+                    text ? 'filled' : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ');
 
                   return (
                     <td
@@ -153,7 +165,7 @@ export function Journal({
                             subjectId: subject.id,
                             date,
                             value: mode === 'absences' && !text ? 'Н' : text,
-                            lateMinutes: getLateMinutes(text) ?? '10',
+                            lateMinutes: normalizeLateMinutes(getLateMinutes(text)),
                           });
                         }
                       }}
@@ -177,7 +189,9 @@ export function Journal({
                     </td>
                   );
                 })}
-                <td className="average-col">{mode === 'marks' ? getAverage(data.cells, subject.id) : ''}</td>
+                <td className={mode === 'marks' ? `average-col ${getAverageClass(data.cells, subject.id)}` : 'average-col'}>
+                  {mode === 'marks' ? getAverage(data.cells, subject.id) : ''}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -218,26 +232,28 @@ export function Journal({
                     ОП
                   </button>
                 </div>
-                <label className="late-select">
-                  Время опоздания
-                  <select
-                    value={editing.lateMinutes}
-                    onChange={(event) => {
-                      const lateMinutes = event.target.value;
-                      setEditing({
-                        ...editing,
-                        lateMinutes,
-                        value: editing.value.includes('ОП') ? applyLateMinutes(editing.value, lateMinutes) : editing.value,
-                      });
-                    }}
-                  >
-                    {[5, 10, 15, 20, 25, 30, 40, 45, 60].map((minutes) => (
-                      <option value={minutes} key={minutes}>
-                        {minutes} минут
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                {isLateEditing && (
+                  <label className="late-select">
+                    Время опоздания
+                    <select
+                      value={editing.lateMinutes}
+                      onChange={(event) => {
+                        const lateMinutes = event.target.value;
+                        setEditing({
+                          ...editing,
+                          lateMinutes,
+                          value: applyLateMinutes(editing.value, lateMinutes),
+                        });
+                      }}
+                    >
+                      {[5, 10, 15].map((minutes) => (
+                        <option value={minutes} key={minutes}>
+                          {minutes} минут
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
               </>
             )}
             {error && <span className="form-error">{error}</span>}
@@ -287,9 +303,27 @@ function getAverage(cells: JournalCell[], subjectId: string) {
   return average.toFixed(1);
 }
 
+function getAverageClass(cells: JournalCell[], subjectId: string) {
+  const average = Number(getAverage(cells, subjectId));
+
+  if (Number.isFinite(average) && average < 3) {
+    return 'danger-average';
+  }
+
+  return '';
+}
+
 function getAbsenceCount(cells: JournalCell[], subjectId: string) {
   const count = cells.filter((cell) => cell.subjectId === subjectId).flatMap((cell) => cell.absences).length;
   return count || '';
+}
+
+function isMonthStart(dates: string[], index: number) {
+  if (index === 0) {
+    return false;
+  }
+
+  return new Date(dates[index]).getMonth() !== new Date(dates[index - 1]).getMonth();
 }
 
 function getVisibleValues(cell: JournalCell | undefined, mode: JournalMode) {
@@ -312,6 +346,16 @@ function formatCellPart(value: string) {
 function getLateMinutes(value: string) {
   const match = value.match(/ОП:(\d{1,3})/);
   return match?.[1];
+}
+
+function normalizeLateMinutes(value: string | undefined) {
+  const minutes = Number(value ?? 10);
+
+  if (!Number.isFinite(minutes)) {
+    return '10';
+  }
+
+  return String(Math.min(15, Math.max(1, minutes)));
 }
 
 function applyLateMinutes(value: string, minutes: string) {
@@ -340,22 +384,28 @@ function getValueClass(value: string) {
     return '';
   }
 
-  if (value.includes('Н')) {
+  const normalizedValue = value.toUpperCase();
+
+  if (normalizedValue.includes('Н')) {
     return 'absence-value';
   }
 
-  if (value.includes('ОП')) {
+  if (normalizedValue.includes('ОП')) {
     return 'late-value';
-  }
-
-  if (value.includes('ЗЧ')) {
-    return 'credit-value';
   }
 
   const marks = value
     .split('/')
     .map((mark) => Number(mark))
     .filter((mark) => Number.isFinite(mark));
+
+  if (marks.some((mark) => mark >= 0 && mark <= 3)) {
+    return 'danger-mark-value';
+  }
+
+  if (normalizedValue.includes('ЗЧ')) {
+    return 'credit-value';
+  }
 
   if (!marks.length) {
     return '';

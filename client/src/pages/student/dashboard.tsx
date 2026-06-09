@@ -1,6 +1,8 @@
 import { BookOpenCheck, CalendarDays, Clock, FileText } from 'lucide-react';
-import { deadlines, exams, schedule } from '../../data/mockData';
-import type { PlannedWork, User } from '../../types';
+import { useEffect, useState } from 'react';
+import { getDashboardData } from '../../api/schedule';
+import { ErrorState, LoadingState } from '../../components/ui/AsyncState';
+import type { Deadline, Exam, PlannedWork, ScheduleItem, User } from '../../types';
 
 const today = new Date('2026-06-03');
 
@@ -19,10 +21,40 @@ function daysLeft(date: string) {
   return `${days} дн.`;
 }
 
-export function Dashboard({ user, plannedWorks }: { user: User; plannedWorks: PlannedWork[] }) {
+export function Dashboard({
+  user,
+  plannedWorks,
+  notifications,
+}: {
+  user: User;
+  plannedWorks: PlannedWork[];
+  notifications: PlannedWork[];
+}) {
+  const [dashboardData, setDashboardData] = useState<{
+    deadlines: Deadline[];
+    exams: Exam[];
+    schedule: ScheduleItem[];
+  } | null>(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    getDashboardData()
+      .then(setDashboardData)
+      .catch((requestError) => setError(requestError instanceof Error ? requestError.message : 'Не удалось загрузить данные'));
+  }, []);
+
   const groupWorks = plannedWorks
     .filter((work) => work.group === user.group)
     .sort((first, second) => new Date(first.date).getTime() - new Date(second.date).getTime());
+  const groupNotifications = notifications.filter((work) => work.group === user.group);
+
+  if (error) {
+    return <ErrorState message={error} />;
+  }
+
+  if (!dashboardData) {
+    return <LoadingState label="Загружаем главную страницу..." />;
+  }
 
   return (
     <div className="dashboard-grid">
@@ -35,6 +67,19 @@ export function Dashboard({ user, plannedWorks }: { user: User; plannedWorks: Pl
           </div>
         </header>
 
+        {groupNotifications.length > 0 && (
+          <section className="notification-stack">
+            {groupNotifications.map((work) => (
+              <article className="notification-card" key={work.id}>
+                <strong>Новое</strong>
+                <span>
+                  {work.subject} · {work.title} · {formatDate(work.date)}
+                </span>
+              </article>
+            ))}
+          </section>
+        )}
+
         <section className="panel">
           <div className="section-title">
             <FileText size={20} />
@@ -42,7 +87,7 @@ export function Dashboard({ user, plannedWorks }: { user: User; plannedWorks: Pl
           </div>
 
           <div className="deadline-list">
-            {deadlines.map((deadline) => (
+            {dashboardData.deadlines.map((deadline) => (
               <article className={`deadline-card ${deadline.status}`} key={deadline.id}>
                 <div>
                   <strong>{deadline.subject}</strong>
@@ -74,10 +119,10 @@ export function Dashboard({ user, plannedWorks }: { user: User; plannedWorks: Pl
                     {work.deadline ? ` · дедлайн ${formatDate(work.deadline)}` : ''}
                   </span>
                 </div>
-                <b>{getWorkTypeLabel(work.type)}</b>
+                <b>{work.room ? `${getWorkTypeLabel(work.type)} · ${work.room}` : getWorkTypeLabel(work.type)}</b>
               </article>
             ))}
-            {schedule.map((lesson) => (
+            {dashboardData.schedule.map((lesson) => (
               <article className="lesson-row" key={lesson.id}>
                 <time>{lesson.time}</time>
                 <div>
@@ -92,7 +137,7 @@ export function Dashboard({ user, plannedWorks }: { user: User; plannedWorks: Pl
       </section>
 
       <aside className="right-column">
-        <MiniCalendar />
+        <MiniCalendar exams={dashboardData.exams} plannedWorks={groupWorks} deadlines={dashboardData.deadlines} />
 
         <section className="panel">
           <div className="section-title">
@@ -101,7 +146,7 @@ export function Dashboard({ user, plannedWorks }: { user: User; plannedWorks: Pl
           </div>
 
           <div className="exam-list">
-            {exams.map((exam) => (
+            {dashboardData.exams.map((exam) => (
               <article key={exam.id}>
                 <time>{formatDate(exam.date)}</time>
                 <strong>{exam.subject}</strong>
@@ -126,11 +171,56 @@ function getWorkTypeLabel(type: PlannedWork['type']) {
     return 'ОКР';
   }
 
+  if (type === 'exam') {
+    return 'Экз.';
+  }
+
   return 'КР';
 }
 
-function MiniCalendar() {
+function getWorkTypeFullLabel(type: PlannedWork['type']) {
+  if (type === 'lab') {
+    return 'лабораторная работа';
+  }
+
+  if (type === 'required-test') {
+    return 'обязательная контрольная работа';
+  }
+
+  if (type === 'exam') {
+    return 'экзамен';
+  }
+
+  return 'контрольная работа';
+}
+
+function MiniCalendar({
+  exams,
+  plannedWorks,
+  deadlines,
+}: {
+  exams: Exam[];
+  plannedWorks: PlannedWork[];
+  deadlines: Deadline[];
+}) {
   const days = Array.from({ length: 30 }, (_, index) => index + 1);
+  const eventsByDay = new Map<number, string[]>();
+
+  exams.forEach((exam) => {
+    addCalendarEvent(eventsByDay, exam.date, `Экзамен: ${exam.subject}`);
+  });
+
+  deadlines.forEach((deadline) => {
+    addCalendarEvent(eventsByDay, deadline.dueDate, `Дедлайн: ${deadline.subject}`);
+  });
+
+  plannedWorks.forEach((work) => {
+    addCalendarEvent(eventsByDay, work.date, `${capitalize(getWorkTypeFullLabel(work.type))}: ${work.subject}`);
+
+    if (work.type === 'lab' && work.deadline) {
+      addCalendarEvent(eventsByDay, work.deadline, `Дедлайн лабы: ${work.subject} · ${work.title}`);
+    }
+  });
 
   return (
     <section className="panel calendar-panel">
@@ -144,12 +234,33 @@ function MiniCalendar() {
         ))}
       </div>
       <div className="calendar-grid">
-        {days.map((day) => (
-          <button className={day === 3 ? 'current' : ''} key={day}>
-            {day}
-          </button>
-        ))}
+        {days.map((day) => {
+          const events = eventsByDay.get(day) ?? [];
+          const className = [day === 3 ? 'current' : '', events.length ? 'has-event' : ''].filter(Boolean).join(' ');
+
+          return (
+            <button className={className} data-tooltip={events.join(' · ') || undefined} key={day}>
+              {day}
+            </button>
+          );
+        })}
       </div>
     </section>
   );
+}
+
+function capitalize(value: string) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function addCalendarEvent(eventsByDay: Map<number, string[]>, date: string, label: string) {
+  const eventDate = new Date(date);
+
+  if (eventDate.getMonth() !== 5 || eventDate.getFullYear() !== 2026) {
+    return;
+  }
+
+  const day = eventDate.getDate();
+  const current = eventsByDay.get(day) ?? [];
+  eventsByDay.set(day, [...current, label]);
 }
