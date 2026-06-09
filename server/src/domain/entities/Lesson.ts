@@ -9,8 +9,8 @@ export class Lesson {
     public readonly startTime: string,
     public readonly endTime: string,
   ) {
-    if (!id) throw new ValidationError('id is required');
-    if (!subjectId) throw new ValidationError('subjectId is required');
-    if (!groupId) throw new ValidationError('groupId is required');
+    if (!id || id.trim().length === 0) throw new ValidationError('id is required');
+    if (!subjectId || subjectId.trim().length === 0) throw new ValidationError('subjectId is required');
+    if (!groupId || groupId.trim().length === 0) throw new ValidationError('groupId is required');
   }
 }

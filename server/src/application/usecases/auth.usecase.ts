@@ -10,11 +10,14 @@ export class AuthUseCaseImpl implements AuthUseCase {
   constructor(private readonly repository: AuthRepository) {}
 
   async registerStudent(data: RegisterStudentDto): Promise<AuthResultDto> {
-    if (!data.lastName || !data.firstName || !data.birthDate || !data.group || !data.password) {
+    if (!data.lastName?.trim() || !data.firstName?.trim() || !data.birthDate?.trim() || !data.group?.trim() || !data.password?.trim()) {
       throw new ValidationError('lastName, firstName, birthDate, group и password обязательны');
     }
+    if (data.password.trim().length < 4) {
+      throw new ValidationError('Пароль должен содержать минимум 4 символа');
+    }
 
-    const fullName = `${data.lastName} ${data.firstName}`;
+    const fullName = `${data.lastName.trim()} ${data.firstName.trim()}`;
     const existing = await this.repository.findUserByFullName(fullName);
     if (existing) {
       throw new ValidationError('Пользователь с таким именем уже существует');
@@ -48,11 +51,14 @@ export class AuthUseCaseImpl implements AuthUseCase {
   }
 
   async registerTeacher(data: RegisterTeacherDto): Promise<AuthResultDto> {
-    if (!data.lastName || !data.firstName || !data.email || !data.password) {
+    if (!data.lastName?.trim() || !data.firstName?.trim() || !data.email?.trim() || !data.password?.trim()) {
       throw new ValidationError('lastName, firstName, email и password обязательны');
     }
+    if (data.password.trim().length < 4) {
+      throw new ValidationError('Пароль должен содержать минимум 4 символа');
+    }
 
-    const fullName = `${data.lastName} ${data.firstName}`;
+    const fullName = `${data.lastName.trim()} ${data.firstName.trim()}`;
     const existing = await this.repository.findUserByFullName(fullName);
     if (existing) {
       throw new ValidationError('Пользователь с таким именем уже существует');
@@ -84,7 +90,7 @@ export class AuthUseCaseImpl implements AuthUseCase {
   }
 
   async login(data: LoginDto): Promise<AuthResultDto> {
-    if (!data.fullName) {
+    if (!data.fullName?.trim()) {
       throw new ValidationError('fullName обязателен');
     }
 

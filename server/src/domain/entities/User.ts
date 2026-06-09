@@ -1,3 +1,5 @@
+import { ValidationError } from '../errors/ValidationError';
+
 export type UserRole = 'STUDENT' | 'TEACHER' | 'ADMIN';
 
 export class User {
@@ -12,10 +14,10 @@ export class User {
     public readonly email?: string,
   ) {
     if (!fullName || fullName.trim().length === 0) {
-      throw new Error('Full name is required');
+      throw new ValidationError('Full name is required');
     }
     if (!lastName || lastName.trim().length === 0) {
-      throw new Error('Last name is required');
+      throw new ValidationError('Last name is required');
     }
   }
 }

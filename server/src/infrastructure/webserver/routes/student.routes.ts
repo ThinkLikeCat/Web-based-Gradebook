@@ -11,11 +11,10 @@ const controller = new StudentController(studentUseCase);
 const router = Router();
 
 router.use(authMiddleware);
-router.use(requireRole(['STUDENT', 'TEACHER']));
 
-router.get('/students/:id/schedule', controller.getSchedule.bind(controller));
-router.get('/students/:id/journal', controller.getJournal.bind(controller));
-router.get('/students/:id/subjects/:subjectId', controller.getSubjectProgress.bind(controller));
-router.get('/students/:id/labs/:labId', controller.getLabDetails.bind(controller));
+router.get('/students/:id/schedule', requireRole(['STUDENT', 'TEACHER']), controller.getSchedule.bind(controller));
+router.get('/students/:id/journal', requireRole(['STUDENT', 'TEACHER']), controller.getJournal.bind(controller));
+router.get('/students/:id/subjects/:subjectId', requireRole(['STUDENT', 'TEACHER']), controller.getSubjectProgress.bind(controller));
+router.get('/students/:id/labs/:labId', requireRole(['STUDENT', 'TEACHER']), controller.getLabDetails.bind(controller));
 
 export default router;

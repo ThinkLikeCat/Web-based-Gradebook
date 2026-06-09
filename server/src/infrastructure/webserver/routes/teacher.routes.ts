@@ -13,18 +13,17 @@ const controller = new TeacherController(teacherUseCase);
 const router = Router();
 
 router.use(authMiddleware);
-router.use(requireRole(['TEACHER']));
 
-router.get('/teacher/groups', controller.getTeacherGroups.bind(controller));
-router.get('/teacher/journal/:groupId/:subjectId', controller.getJournal.bind(controller));
-router.post('/teacher/grade', validate(setGradeSchema), controller.setGrade.bind(controller));
-router.post('/teacher/attendance', validate(setAttendanceSchema), controller.setAttendance.bind(controller));
-router.post('/teacher/lesson', validate(addLessonSchema), controller.addLesson.bind(controller));
-router.get('/teacher/program/:subjectId', controller.getProgram.bind(controller));
-router.post('/teacher/program', validate(addProgramItemSchema), controller.addProgramItem.bind(controller));
-router.put('/teacher/program/:itemId', controller.updateProgramItem.bind(controller));
-router.delete('/teacher/program/:itemId', controller.deleteProgramItem.bind(controller));
-router.get('/teacher/labs/:programId/submissions', controller.getLabSubmissions.bind(controller));
-router.post('/teacher/labs/submissions/:submissionId/grade', validate(gradeSubmissionSchema), controller.gradeLabSubmission.bind(controller));
+router.get('/teacher/groups', requireRole(['TEACHER']), controller.getTeacherGroups.bind(controller));
+router.get('/teacher/journal/:groupId/:subjectId', requireRole(['TEACHER']), controller.getJournal.bind(controller));
+router.post('/teacher/grade', requireRole(['TEACHER']), validate(setGradeSchema), controller.setGrade.bind(controller));
+router.post('/teacher/attendance', requireRole(['TEACHER']), validate(setAttendanceSchema), controller.setAttendance.bind(controller));
+router.post('/teacher/lesson', requireRole(['TEACHER']), validate(addLessonSchema), controller.addLesson.bind(controller));
+router.get('/teacher/program/:subjectId', requireRole(['TEACHER']), controller.getProgram.bind(controller));
+router.post('/teacher/program', requireRole(['TEACHER']), validate(addProgramItemSchema), controller.addProgramItem.bind(controller));
+router.put('/teacher/program/:itemId', requireRole(['TEACHER']), controller.updateProgramItem.bind(controller));
+router.delete('/teacher/program/:itemId', requireRole(['TEACHER']), controller.deleteProgramItem.bind(controller));
+router.get('/teacher/labs/:programId/submissions', requireRole(['TEACHER']), controller.getLabSubmissions.bind(controller));
+router.post('/teacher/labs/submissions/:submissionId/grade', requireRole(['TEACHER']), validate(gradeSubmissionSchema), controller.gradeLabSubmission.bind(controller));
 
 export default router;

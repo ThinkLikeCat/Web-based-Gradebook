@@ -106,7 +106,7 @@ export class StudentUseCaseImpl implements StudentUseCase {
       subjectName: course.name,
       grades: grades.map((grade) => ({ type: grade.type, value: grade.value, date: grade.date })),
       attendance: attendance.map((record) => ({ date: record.date, status: record.status })),
-      summary: `Средний балл ${averageScore}. Посещаемость: present=${attendanceStats.present ?? 0}, absent=${attendanceStats.absent ?? 0}, late=${attendanceStats.late ?? 0}.`,
+      summary: `Средний балл ${averageScore}. Посещаемость: present=${attendanceStats.PRESENT ?? 0}, absent=${attendanceStats.ABSENT ?? 0}, late=${attendanceStats.LATE ?? 0}.`,
     };
   }
 
