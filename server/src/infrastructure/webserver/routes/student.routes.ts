@@ -1,12 +1,17 @@
 import { Router } from 'express';
 import { StudentController } from '../../../interfaces/controllers/student.controller';
 import { StudentUseCaseImpl } from '../../../application/usecases/student.usecase';
-import { InMemoryStudentRepository } from '../../database/repositories/in-memory-student.repository';
+import { InMemoryGradebookRepository } from '../../database/repositories/InMemoryGradebookRepository';
+import { authMiddleware, requireRole } from '../middleware/auth';
 
-const studentUseCase = new StudentUseCaseImpl(new InMemoryStudentRepository());
+const repository = new InMemoryGradebookRepository();
+const studentUseCase = new StudentUseCaseImpl(repository);
 const controller = new StudentController(studentUseCase);
 
 const router = Router();
+
+router.use(authMiddleware);
+router.use(requireRole(['STUDENT', 'TEACHER']));
 
 router.get('/students/:id/schedule', controller.getSchedule.bind(controller));
 router.get('/students/:id/journal', controller.getJournal.bind(controller));

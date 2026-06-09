@@ -1,11 +1,11 @@
-import { Student } from '../../../domain/entities/Student';
-import { Course } from '../../../domain/entities/Course';
-import { Grade } from '../../../domain/entities/Grade';
-import { Attendance } from '../../../domain/entities/Attendance';
-import { LabWork } from '../../../domain/entities/LabWork';
-import { LabSubmission } from '../../../domain/entities/LabSubmission';
+import { Student } from '../entities/Student';
+import { Course } from '../entities/Course';
+import { Grade } from '../entities/Grade';
+import { Attendance } from '../entities/Attendance';
+import { LabWork } from '../entities/LabWork';
+import { LabSubmission } from '../entities/LabSubmission';
 
-export interface StudentRepository {
+export interface StudentReadRepository {
   findStudentById(studentId: string): Promise<Student | null>;
   findScheduleByStudentId(studentId: string): Promise<Array<{ course: Course }>>;
   findGradesByStudentId(studentId: string): Promise<Grade[]>;

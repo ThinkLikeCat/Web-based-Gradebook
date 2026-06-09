@@ -1,4 +1,5 @@
 import { StudentId } from '../value-objects/StudentId';
+import { ValidationError } from '../errors/ValidationError';
 
 export class Student {
   constructor(
@@ -6,11 +7,7 @@ export class Student {
     public readonly name: string,
     public readonly group: string,
   ) {
-    if (!name || name.trim().length === 0) {
-      throw new Error('Student name is required');
-    }
-    if (!group || group.trim().length === 0) {
-      throw new Error('Student group is required');
-    }
+    if (!name) throw new ValidationError('Student name is required');
+    if (!group) throw new ValidationError('Student group is required');
   }
 }

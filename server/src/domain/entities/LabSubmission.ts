@@ -1,3 +1,5 @@
+import { ValidationError } from '../errors/ValidationError';
+
 export class LabSubmission {
   constructor(
     public readonly labId: string,
@@ -8,20 +10,12 @@ export class LabSubmission {
     public readonly teacherGrade: number | null,
     public readonly status: 'submitted' | 'pending' | 'graded',
   ) {
-    if (!labId || labId.trim().length === 0) {
-      throw new Error('LabSubmission labId is required');
-    }
-    if (!studentId || studentId.trim().length === 0) {
-      throw new Error('LabSubmission studentId is required');
-    }
-    if (!submissionDate || submissionDate.trim().length === 0) {
-      throw new Error('LabSubmission submissionDate is required');
-    }
-    if (!fileUrl || fileUrl.trim().length === 0) {
-      throw new Error('LabSubmission fileUrl is required');
-    }
+    if (!labId) throw new ValidationError('labId is required');
+    if (!studentId) throw new ValidationError('studentId is required');
+    if (!submissionDate) throw new ValidationError('submissionDate is required');
+    if (!fileUrl) throw new ValidationError('fileUrl is required');
     if (!['submitted', 'pending', 'graded'].includes(status)) {
-      throw new Error('LabSubmission status is invalid');
+      throw new ValidationError('status must be submitted, pending or graded');
     }
   }
 }

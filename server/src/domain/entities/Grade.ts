@@ -1,24 +1,16 @@
-export type GradeType = 'lab' | 'exam' | 'practice' | 'test' | 'oral';
+import { ValidationError } from '../errors/ValidationError';
 
 export class Grade {
   constructor(
     public readonly studentId: string,
     public readonly subjectId: string,
-    public readonly type: GradeType,
     public readonly value: number,
+    public readonly type: string,
     public readonly date: string,
   ) {
-    if (!studentId || studentId.trim().length === 0) {
-      throw new Error('Grade studentId is required');
-    }
-    if (!subjectId || subjectId.trim().length === 0) {
-      throw new Error('Grade subjectId is required');
-    }
-    if (value < 0 || value > 100) {
-      throw new Error('Grade value must be between 0 and 100');
-    }
-    if (!date || date.trim().length === 0) {
-      throw new Error('Grade date is required');
-    }
+    if (!studentId) throw new ValidationError('studentId is required');
+    if (!subjectId) throw new ValidationError('subjectId is required');
+    if (value < 1 || value > 10) throw new ValidationError('Grade must be 1–10');
+    if (!date) throw new ValidationError('date is required');
   }
 }

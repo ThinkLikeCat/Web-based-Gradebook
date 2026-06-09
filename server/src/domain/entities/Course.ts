@@ -1,4 +1,5 @@
 import { CourseId } from '../value-objects/CourseId';
+import { ValidationError } from '../errors/ValidationError';
 
 export type CourseScheduleItem = {
   day: string;
@@ -13,14 +14,8 @@ export class Course {
     public readonly teacherName: string,
     public readonly schedule: CourseScheduleItem[],
   ) {
-    if (!name || name.trim().length === 0) {
-      throw new Error('Course name is required');
-    }
-    if (!teacherName || teacherName.trim().length === 0) {
-      throw new Error('Teacher name is required');
-    }
-    if (!schedule || schedule.length === 0) {
-      throw new Error('Course schedule is required');
-    }
+    if (!name) throw new ValidationError('Course name is required');
+    if (!teacherName) throw new ValidationError('Teacher name is required');
+    if (!schedule || schedule.length === 0) throw new ValidationError('Course schedule is required');
   }
 }

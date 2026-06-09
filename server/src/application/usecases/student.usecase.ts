@@ -1,5 +1,5 @@
 import { StudentUseCase } from '../ports/in/student.usecase';
-import { StudentRepository } from '../../infrastructure/database/repositories/student.repository';
+import { StudentReadRepository } from '../../domain/repositories/StudentReadRepository';
 import { NotFoundError } from '../../domain/errors/NotFoundError';
 import { StudentScheduleDto } from '../dtos/student-schedule.dto';
 import { StudentJournalDto } from '../dtos/student-journal.dto';
@@ -7,7 +7,7 @@ import { StudentSubjectProgressDto } from '../dtos/student-subject.dto';
 import { StudentLabDetailDto } from '../dtos/student-lab.dto';
 
 export class StudentUseCaseImpl implements StudentUseCase {
-  constructor(private readonly repository: StudentRepository) {}
+  constructor(private readonly repository: StudentReadRepository) {}
 
   async getSchedule(studentId: string): Promise<StudentScheduleDto> {
     const student = await this.repository.findStudentById(studentId);

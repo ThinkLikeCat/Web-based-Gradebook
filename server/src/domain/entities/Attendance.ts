@@ -1,4 +1,6 @@
-export type AttendanceStatus = 'present' | 'absent' | 'late';
+import { ValidationError } from '../errors/ValidationError';
+
+export type AttendanceStatus = 'PRESENT' | 'LATE' | 'ABSENT';
 
 export class Attendance {
   constructor(
@@ -7,17 +9,11 @@ export class Attendance {
     public readonly date: string,
     public readonly status: AttendanceStatus,
   ) {
-    if (!studentId || studentId.trim().length === 0) {
-      throw new Error('Attendance studentId is required');
-    }
-    if (!subjectId || subjectId.trim().length === 0) {
-      throw new Error('Attendance subjectId is required');
-    }
-    if (!date || date.trim().length === 0) {
-      throw new Error('Attendance date is required');
-    }
-    if (!['present', 'absent', 'late'].includes(status)) {
-      throw new Error('Attendance status is invalid');
+    if (!studentId) throw new ValidationError('studentId is required');
+    if (!subjectId) throw new ValidationError('subjectId is required');
+    if (!date) throw new ValidationError('date is required');
+    if (!['PRESENT', 'LATE', 'ABSENT'].includes(status)) {
+      throw new ValidationError('status must be PRESENT, LATE or ABSENT');
     }
   }
 }

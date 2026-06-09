@@ -1,6 +1,6 @@
 export interface ProgramItemDto {
-  id: number;
-  subjectId: number;
+  id: string;
+  subjectId: string;
   title: string;
   type: 'LAB' | 'THEORY' | 'PRACTICAL' | 'CONTROL';
   deadline?: string;
@@ -9,7 +9,7 @@ export interface ProgramItemDto {
 }
 
 export interface CreateProgramItemDto {
-  subjectId: number;
+  subjectId: string;
   title: string;
   type: 'LAB' | 'THEORY' | 'PRACTICAL' | 'CONTROL';
   deadline?: string;

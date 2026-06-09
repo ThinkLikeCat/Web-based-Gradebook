@@ -1,4 +1,5 @@
 import { LabWorkId } from '../value-objects/LabWorkId';
+import { ValidationError } from '../errors/ValidationError';
 
 export type LabPartner = {
   id: string;
@@ -16,17 +17,9 @@ export class LabWork {
     public readonly theoryMaterials: string,
     public readonly partners: LabPartner[] = [],
   ) {
-    if (!subjectId || subjectId.trim().length === 0) {
-      throw new Error('LabWork subjectId is required');
-    }
-    if (!title || title.trim().length === 0) {
-      throw new Error('LabWork title is required');
-    }
-    if (!issueDate || issueDate.trim().length === 0) {
-      throw new Error('LabWork issueDate is required');
-    }
-    if (!dueDate || dueDate.trim().length === 0) {
-      throw new Error('LabWork dueDate is required');
-    }
+    if (!subjectId) throw new ValidationError('subjectId is required');
+    if (!title) throw new ValidationError('title is required');
+    if (!issueDate) throw new ValidationError('issueDate is required');
+    if (!dueDate) throw new ValidationError('dueDate is required');
   }
 }
