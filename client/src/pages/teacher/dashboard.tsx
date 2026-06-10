@@ -1,8 +1,7 @@
 import { BookOpenCheck, FolderOpen, Users } from 'lucide-react';
-import { groups } from '../../data/mockData';
+import { useEffect, useState } from 'react';
+import { getTeacherGroups } from '../../api/teacher';
 import type { TeacherChoice, User } from '../../types';
-
-const teacherSubjects = ['Веб-программирование', 'Системы управления БД', 'Компьютерные сети', 'Тестирование ПО'];
 
 export function TeacherDashboard({
   user,
@@ -13,6 +12,22 @@ export function TeacherDashboard({
   choice: TeacherChoice;
   onChoiceChange: (choice: TeacherChoice) => void;
 }) {
+  const [groupInfos, setGroupInfos] = useState<Array<{ groupId: string; groupName: string; subjectId: string; subjectName: string }>>([]);
+
+  const uniqueGroups = [...new Set(groupInfos.map(g => g.groupName))];
+  const uniqueSubjects = [...new Set(groupInfos.map(g => g.subjectName))];
+
+  useEffect(() => {
+    getTeacherGroups()
+      .then(data => {
+        setGroupInfos(data);
+        if (data.length > 0) {
+          onChoiceChange({ group: data[0].groupName, subject: data[0].subjectName });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <div className="teacher-home">
       <header className="page-head">
@@ -33,7 +48,7 @@ export function TeacherDashboard({
           <label>
             Группа
             <select value={choice.group} onChange={(event) => onChoiceChange({ ...choice, group: event.target.value })}>
-              {groups.map((group) => (
+              {uniqueGroups.map((group) => (
                 <option key={group}>{group}</option>
               ))}
             </select>
@@ -42,7 +57,7 @@ export function TeacherDashboard({
           <label>
             Предмет
             <select value={choice.subject} onChange={(event) => onChoiceChange({ ...choice, subject: event.target.value })}>
-              {teacherSubjects.map((subject) => (
+              {uniqueSubjects.map((subject) => (
                 <option key={subject}>{subject}</option>
               ))}
             </select>

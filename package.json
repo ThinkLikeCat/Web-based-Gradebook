@@ -1,0 +1,19 @@
+{
+  "name": "web-based-gradebook",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n server,client -c blue,green \"cd server && npm run dev\" \"cd client && npm run dev\"",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "build": "cd server && npm run build && cd ../client && npm run build",
+    "test": "cd server && npm test",
+    "test:unit": "cd server && npm run test:unit",
+    "test:e2e": "cd server && npm run test:e2e",
+    "lint": "cd server && npm run lint",
+    "typecheck": "cd server && npm run typecheck"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

@@ -1,49 +1,41 @@
 import { Request, Response } from 'express';
 import { AuthUseCase } from '../../application/ports/in/auth.usecase';
-import { ValidationError } from '../../domain/errors/ValidationError';
-import { NotFoundError } from '../../domain/errors/NotFoundError';
-
-function handleControllerError(res: Response, error: unknown): void {
-  if (error instanceof NotFoundError) {
-    res.status(401).json({ error: error.message });
-  } else if (error instanceof ValidationError) {
-    res.status(400).json({ error: error.message });
-  } else {
-    const message = error instanceof Error ? error.message : 'Internal server error';
-    res.status(500).json({ error: message });
-  }
-}
+import { asyncHandler } from '../../infrastructure/webserver/middleware/errorHandler';
 
 export class AuthController {
   constructor(private readonly authUseCase: AuthUseCase) {}
 
-  async registerStudent(req: Request, res: Response): Promise<void> {
-    try {
-      const { lastName, firstName, birthDate, group, password } = req.body;
-      const result = await this.authUseCase.registerStudent({ lastName, firstName, birthDate, group, password });
-      res.status(201).json(result);
-    } catch (error) {
-      handleControllerError(res, error);
-    }
-  }
+  registerStudent = asyncHandler(async (req: Request, res: Response) => {
+    const { lastName, firstName, birthDate, group, password } = req.body;
+    const result = await this.authUseCase.registerStudent({ lastName, firstName, birthDate, group, password });
+    res.status(201).json(result);
+  });
 
-  async registerTeacher(req: Request, res: Response): Promise<void> {
-    try {
-      const { lastName, firstName, email, password } = req.body;
-      const result = await this.authUseCase.registerTeacher({ lastName, firstName, email, password });
-      res.status(201).json(result);
-    } catch (error) {
-      handleControllerError(res, error);
-    }
-  }
+  registerTeacher = asyncHandler(async (req: Request, res: Response) => {
+    const { lastName, firstName, email, password } = req.body;
+    const result = await this.authUseCase.registerTeacher({ lastName, firstName, email, password });
+    res.status(201).json(result);
+  });
 
-  async login(req: Request, res: Response): Promise<void> {
-    try {
-      const { fullName, password, birthDate } = req.body;
-      const result = await this.authUseCase.login({ fullName, password, birthDate });
-      res.json(result);
-    } catch (error) {
-      handleControllerError(res, error);
+  login = asyncHandler(async (req: Request, res: Response) => {
+    const { fullName, password, birthDate } = req.body;
+    const result = await this.authUseCase.login({ fullName, password, birthDate });
+    res.json(result);
+  });
+
+  refreshToken = asyncHandler(async (req: Request, res: Response) => {
+    const { refreshToken } = req.body;
+    const result = await this.authUseCase.refreshToken({ refreshToken });
+    res.json(result);
+  });
+
+  logout = asyncHandler(async (req: Request, res: Response) => {
+    const { refreshToken } = req.body;
+    if (refreshToken) {
+      await this.authUseCase.logout(refreshToken);
+    } else if (req.user) {
+      await this.authUseCase.logoutAll(req.user.id);
     }
-  }
+    res.json({ message: 'Выход выполнен' });
+  });
 }

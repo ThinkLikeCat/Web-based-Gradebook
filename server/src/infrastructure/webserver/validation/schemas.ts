@@ -51,6 +51,10 @@ export const addProgramItemSchema = z.object({
   fileUrl: z.string().optional(),
 });
 
+export const refreshTokenSchema = z.object({
+  refreshToken: z.string().min(1, 'refreshToken is required'),
+});
+
 export const gradeSubmissionSchema = z.object({
   grade: z.number().int().min(1).max(10),
   comment: z.string().optional(),

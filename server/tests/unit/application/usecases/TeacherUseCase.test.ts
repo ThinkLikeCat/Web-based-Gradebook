@@ -1,8 +1,9 @@
 import { TeacherUseCaseImpl } from '../../../../src/application/usecases/teacher.usecase';
-import { TeacherAccessRepository, TeacherStudentData } from '../../../../src/domain/repositories/TeacherAccessRepository';
-import { TeacherJournalRepository, TeacherLessonData, TeacherGradeData, TeacherAttendanceData } from '../../../../src/domain/repositories/TeacherJournalRepository';
+import { TeacherAccessRepository } from '../../../../src/domain/repositories/TeacherAccessRepository';
+import { TeacherJournalRepository } from '../../../../src/domain/repositories/TeacherJournalRepository';
 import { TeacherProgramRepository } from '../../../../src/domain/repositories/TeacherProgramRepository';
 import { NotFoundError } from '../../../../src/domain/errors/NotFoundError';
+import { UnauthorizedError } from '../../../../src/domain/errors/UnauthorizedError';
 
 describe('TeacherUseCase', () => {
   let accessRepo: jest.Mocked<TeacherAccessRepository>;
@@ -138,10 +139,10 @@ describe('TeacherUseCase', () => {
       expect(journalRepo.createLesson).toHaveBeenCalled();
     });
 
-    it('throws when access denied', async () => {
+    it('throws UnauthorizedError when access denied', async () => {
       accessRepo.checkTeacherAccess.mockResolvedValue(false);
 
-      await expect(useCase.addLesson(2, { subjectId: 's1', groupId: 'g1', date: '', startTime: '', endTime: '' })).rejects.toThrow('Access denied');
+      await expect(useCase.addLesson(2, { subjectId: 's1', groupId: 'g1', date: '', startTime: '', endTime: '' })).rejects.toThrow(UnauthorizedError);
     });
   });
 });

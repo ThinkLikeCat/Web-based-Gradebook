@@ -1,14 +1,13 @@
 import { TeacherUseCase } from '../ports/in/teacher.usecase';
-import { TeacherStudentData } from '../../domain/repositories/TeacherAccessRepository';
-import { TeacherLessonData, TeacherGradeData, TeacherAttendanceData } from '../../domain/repositories/TeacherJournalRepository';
-import { TeacherAccessRepository } from '../../domain/repositories/TeacherAccessRepository';
-import { TeacherJournalRepository } from '../../domain/repositories/TeacherJournalRepository';
-import { TeacherProgramRepository } from '../../domain/repositories/TeacherProgramRepository';
+import { TeacherStudentData, TeacherGroupInfo, TeacherAccessRepository } from '../../domain/repositories/TeacherAccessRepository';
+import { TeacherLessonData, TeacherGradeData, TeacherAttendanceData, TeacherJournalRepository } from '../../domain/repositories/TeacherJournalRepository';
+import { ProgramItemData, LabSubmissionData, TeacherProgramRepository } from '../../domain/repositories/TeacherProgramRepository';
 import { NotFoundError } from '../../domain/errors/NotFoundError';
+import { UnauthorizedError } from '../../domain/errors/UnauthorizedError';
 import { GradeValue } from '../../domain/value-objects/GradeValue';
 import { TeacherJournalDto, TeacherJournalStudentDto, TeacherJournalLessonDto, TeacherJournalGradeDto, TeacherJournalAttendanceDto } from '../dtos/teacher-journal.dto';
-import { ProgramItemDto, CreateProgramItemDto } from '../dtos/teacher-program.dto';
-import { LabSubmissionDto, GradeSubmissionDto, TeacherGroupInfoDto } from '../dtos/teacher-lab.dto';
+import { CreateProgramItemDto } from '../dtos/teacher-program.dto';
+import { GradeSubmissionDto } from '../dtos/teacher-lab.dto';
 
 export class TeacherUseCaseImpl implements TeacherUseCase {
   constructor(
@@ -17,7 +16,7 @@ export class TeacherUseCaseImpl implements TeacherUseCase {
     private readonly programRepo: TeacherProgramRepository,
   ) {}
 
-  async getTeacherGroups(teacherId: number): Promise<TeacherGroupInfoDto[]> {
+  async getTeacherGroups(teacherId: number): Promise<TeacherGroupInfo[]> {
     return this.accessRepo.findTeacherGroups(teacherId);
   }
 
@@ -67,13 +66,13 @@ export class TeacherUseCaseImpl implements TeacherUseCase {
 
   async setGrade(teacherId: number, data: { studentId: string; lessonId: string; value: number; type: string }): Promise<void> {
     const gradeValue = GradeValue.create(data.value);
-    
+
     const lesson = await this.journalRepo.findLessonById(data.lessonId);
     if (!lesson) throw new NotFoundError('Lesson not found');
-    
+
     const hasAccess = await this.accessRepo.checkTeacherAccess(teacherId, lesson.groupId, lesson.subjectId);
-    if (!hasAccess) throw new Error('Access denied');
-    
+    if (!hasAccess) throw new UnauthorizedError('Access denied');
+
     await this.journalRepo.saveGrade({
       studentId: data.studentId,
       lessonId: data.lessonId,
@@ -85,10 +84,10 @@ export class TeacherUseCaseImpl implements TeacherUseCase {
   async setAttendance(teacherId: number, data: { studentId: string; lessonId: string; status: 'PRESENT' | 'LATE' | 'ABSENT' }): Promise<void> {
     const lesson = await this.journalRepo.findLessonById(data.lessonId);
     if (!lesson) throw new NotFoundError('Lesson not found');
-    
+
     const hasAccess = await this.accessRepo.checkTeacherAccess(teacherId, lesson.groupId, lesson.subjectId);
-    if (!hasAccess) throw new Error('Access denied');
-    
+    if (!hasAccess) throw new UnauthorizedError('Access denied');
+
     await this.journalRepo.saveAttendance({
       studentId: data.studentId,
       lessonId: data.lessonId,
@@ -98,22 +97,22 @@ export class TeacherUseCaseImpl implements TeacherUseCase {
 
   async addLesson(teacherId: number, data: { subjectId: string; groupId: string; date: string; startTime: string; endTime: string }): Promise<void> {
     const hasAccess = await this.accessRepo.checkTeacherAccess(teacherId, data.groupId, data.subjectId);
-    if (!hasAccess) throw new Error('Access denied');
-    
+    if (!hasAccess) throw new UnauthorizedError('Access denied');
+
     await this.journalRepo.createLesson(data);
   }
 
-  async getProgram(teacherId: number, subjectId: string): Promise<ProgramItemDto[]> {
+  async getProgram(teacherId: number, subjectId: string): Promise<ProgramItemData[]> {
     const hasAccess = await this.accessRepo.checkTeacherSubjectAccess(teacherId, subjectId);
-    if (!hasAccess) throw new Error('Access denied');
-    
+    if (!hasAccess) throw new UnauthorizedError('Access denied');
+
     return this.programRepo.findProgramBySubject(subjectId);
   }
 
-  async addProgramItem(teacherId: number, data: CreateProgramItemDto): Promise<ProgramItemDto> {
+  async addProgramItem(teacherId: number, data: CreateProgramItemDto): Promise<ProgramItemData> {
     const hasAccess = await this.accessRepo.checkTeacherSubjectAccess(teacherId, data.subjectId);
-    if (!hasAccess) throw new Error('Access denied');
-    
+    if (!hasAccess) throw new UnauthorizedError('Access denied');
+
     return this.programRepo.createProgramItem(data);
   }
 
@@ -122,10 +121,10 @@ export class TeacherUseCaseImpl implements TeacherUseCase {
     if (!item) {
       throw new NotFoundError('Program item not found');
     }
-    
+
     const hasAccess = await this.accessRepo.checkTeacherSubjectAccess(teacherId, item.subjectId);
-    if (!hasAccess) throw new Error('Access denied');
-    
+    if (!hasAccess) throw new UnauthorizedError('Access denied');
+
     await this.programRepo.updateProgramItem(itemId, data);
   }
 
@@ -134,22 +133,22 @@ export class TeacherUseCaseImpl implements TeacherUseCase {
     if (!item) {
       throw new NotFoundError('Program item not found');
     }
-    
+
     const hasAccess = await this.accessRepo.checkTeacherSubjectAccess(teacherId, item.subjectId);
-    if (!hasAccess) throw new Error('Access denied');
-    
+    if (!hasAccess) throw new UnauthorizedError('Access denied');
+
     await this.programRepo.deleteProgramItem(itemId);
   }
 
-  async getLabSubmissions(teacherId: number, programId: string): Promise<LabSubmissionDto[]> {
+  async getLabSubmissions(teacherId: number, programId: string): Promise<LabSubmissionData[]> {
     const program = await this.programRepo.findProgramItemById(programId);
     if (!program) {
       throw new NotFoundError('Program not found');
     }
-    
+
     const hasAccess = await this.accessRepo.checkTeacherSubjectAccess(teacherId, program.subjectId);
-    if (!hasAccess) throw new Error('Access denied');
-    
+    if (!hasAccess) throw new UnauthorizedError('Access denied');
+
     return this.programRepo.findLabSubmissionsByProgram(programId);
   }
 
@@ -158,20 +157,20 @@ export class TeacherUseCaseImpl implements TeacherUseCase {
     if (!submission) {
       throw new NotFoundError('Submission not found');
     }
-    
+
     const program = await this.programRepo.findProgramItemById(submission.programId);
     if (!program) {
       throw new NotFoundError('Program not found');
     }
-    
+
     const hasAccess = await this.accessRepo.checkTeacherSubjectAccess(teacherId, program.subjectId);
-    if (!hasAccess) throw new Error('Access denied');
-    
+    if (!hasAccess) throw new UnauthorizedError('Access denied');
+
     const gradeValue = GradeValue.create(data.grade);
     await this.programRepo.updateLabSubmission(submissionId, {
       grade: gradeValue.getValue(),
       comment: data.comment,
-      status: 'CHECKED',
+      status: 'graded',
     });
   }
 }

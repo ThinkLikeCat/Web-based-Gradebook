@@ -41,30 +41,24 @@ export class StudentUseCaseImpl implements StudentUseCase {
     const grades = await this.repository.findGradesByStudentId(studentId);
     const attendance = await this.repository.findAttendanceByStudentId(studentId);
 
-    const gradeRows = await Promise.all(
-      grades.map(async (grade) => {
-        const course = await this.repository.findCourseById(grade.subjectId);
-        return {
-          subjectId: grade.subjectId,
-          subjectName: course?.name ?? 'Неизвестный предмет',
-          type: grade.type,
-          value: grade.value,
-          date: grade.date,
-        };
-      }),
-    );
+    const allSubjectIds = [...new Set([...grades.map(g => g.subjectId), ...attendance.map(a => a.subjectId)])];
+    const courses = await this.repository.findCoursesByIds(allSubjectIds);
+    const courseMap = new Map(courses.map(c => [c.id.value, c.name]));
 
-    const attendanceRows = await Promise.all(
-      attendance.map(async (record) => {
-        const course = await this.repository.findCourseById(record.subjectId);
-        return {
-          subjectId: record.subjectId,
-          subjectName: course?.name ?? 'Неизвестный предмет',
-          date: record.date,
-          status: record.status,
-        };
-      }),
-    );
+    const gradeRows = grades.map((grade) => ({
+      subjectId: grade.subjectId,
+      subjectName: courseMap.get(grade.subjectId) ?? 'Неизвестный предмет',
+      type: grade.type,
+      value: grade.value,
+      date: grade.date,
+    }));
+
+    const attendanceRows = attendance.map((record) => ({
+      subjectId: record.subjectId,
+      subjectName: courseMap.get(record.subjectId) ?? 'Неизвестный предмет',
+      date: record.date,
+      status: record.status,
+    }));
 
     return {
       studentId: student.id.value,

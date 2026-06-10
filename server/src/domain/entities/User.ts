@@ -12,6 +12,7 @@ export class User {
     public readonly birthDate?: string,
     public readonly groupId?: string,
     public readonly email?: string,
+    public readonly studentId?: string,
   ) {
     if (!fullName || fullName.trim().length === 0) {
       throw new ValidationError('Full name is required');

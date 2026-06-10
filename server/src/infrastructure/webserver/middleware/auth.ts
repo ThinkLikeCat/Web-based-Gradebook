@@ -7,6 +7,7 @@ declare module 'express' {
     user?: {
       id: number;
       role: string;
+      studentId?: string;
     };
   }
 }
@@ -20,7 +21,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction):
   }
   
   try {
-    const decoded = jwt.verify(token, config.jwtSecret) as { id: number; role: string };
+    const decoded = jwt.verify(token, config.jwtSecret) as { id: number; role: string; studentId?: string };
     req.user = decoded;
     next();
   } catch (error) {

@@ -15,6 +15,7 @@ export function Journal({
   canEdit = false,
   rows,
   cells,
+  dates: propDates,
   leftHeader = 'Предмет',
   cornerTop,
   cornerBottom = 'Даты занятий',
@@ -23,6 +24,7 @@ export function Journal({
   canEdit?: boolean;
   rows?: SubjectRow[];
   cells?: JournalCell[];
+  dates?: string[];
   leftHeader?: string;
   cornerTop?: string;
   cornerBottom?: string;
@@ -34,6 +36,10 @@ export function Journal({
   const isLateEditing = editing?.value.includes('ОП') ?? false;
 
   useEffect(() => {
+    if (propDates && rows && cells) {
+      setData({ dates: propDates, subjects: rows, cells });
+      return;
+    }
     getJournalData().then((journalData) => {
       setData({
         dates: journalData.dates,
@@ -41,7 +47,7 @@ export function Journal({
         cells: cells ?? journalData.cells,
       });
     });
-  }, [rows, cells]);
+  }, [rows, cells, propDates]);
 
   const monthGroups = useMemo(() => getMonthGroups(data.dates), [data.dates]);
 

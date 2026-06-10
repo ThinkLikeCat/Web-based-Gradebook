@@ -11,6 +11,7 @@ export interface StudentReadRepository {
   findGradesByStudentId(studentId: string): Promise<Grade[]>;
   findAttendanceByStudentId(studentId: string): Promise<Attendance[]>;
   findCourseById(courseId: string): Promise<Course | null>;
+  findCoursesByIds(courseIds: string[]): Promise<Course[]>;
   findLabWorkById(labId: string): Promise<LabWork | null>;
   findLabSubmission(studentId: string, labId: string): Promise<LabSubmission | null>;
 }

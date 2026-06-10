@@ -8,6 +8,25 @@ export type User = {
   fullName: string;
   lastName: string;
   group?: string;
+  studentId?: string;
+};
+
+export type AuthTokens = {
+  token: string;
+  refreshToken: string;
+};
+
+export type AuthResponse = {
+  token: string;
+  refreshToken: string;
+  user: {
+    id: number;
+    fullName: string;
+    role: 'STUDENT' | 'TEACHER';
+    group?: string;
+    groupId?: string;
+    studentId?: string;
+  };
 };
 
 export type Deadline = {

@@ -1,15 +1,35 @@
 import { journalCells, journalDates, subjects } from '../data/mockData';
-import type { JournalCell, JournalMode } from '../types';
+import type { JournalCell, JournalMode, SubjectRow } from '../types';
 import { apiRequest } from './client';
+import { getStudentJournal } from './student';
 
-export async function getJournalData() {
-  return apiRequest('/journal', {
-    mock: () => ({
-      dates: journalDates,
-      subjects,
-      cells: journalCells,
-    }),
-  });
+type JournalData = {
+  dates: string[];
+  subjects: SubjectRow[];
+  cells: JournalCell[];
+};
+
+function getStoredStudentId(): string {
+  try {
+    const raw = sessionStorage.getItem('gradebook_user');
+    if (!raw) return '';
+    return JSON.parse(raw).studentId || '';
+  } catch {
+    return '';
+  }
+}
+
+export async function getJournalData(): Promise<JournalData> {
+  const studentId = getStoredStudentId();
+  if (studentId) {
+    try {
+      return await getStudentJournal(studentId);
+    } catch {
+      return { dates: journalDates, subjects, cells: journalCells };
+    }
+  }
+
+  return { dates: journalDates, subjects, cells: journalCells };
 }
 
 export function validateCellValue(mode: JournalMode, rawValue: string): string[] {

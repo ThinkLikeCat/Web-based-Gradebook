@@ -19,6 +19,7 @@ describe('StudentUseCase', () => {
       findGradesByStudentId: jest.fn(),
       findAttendanceByStudentId: jest.fn(),
       findCourseById: jest.fn(),
+      findCoursesByIds: jest.fn(),
       findLabWorkById: jest.fn(),
       findLabSubmission: jest.fn(),
     };
@@ -58,7 +59,7 @@ describe('StudentUseCase', () => {
       mockRepo.findStudentById.mockResolvedValue(student);
       mockRepo.findGradesByStudentId.mockResolvedValue([grade]);
       mockRepo.findAttendanceByStudentId.mockResolvedValue([attendance]);
-      mockRepo.findCourseById.mockResolvedValue(new Course(new CourseId('c1'), 'Математика', 'Петров', [{ day: 'Пн', time: '09:00', room: '101' }]));
+      mockRepo.findCoursesByIds.mockResolvedValue([new Course(new CourseId('c1'), 'Математика', 'Петров', [{ day: 'Пн', time: '09:00', room: '101' }])]);
 
       const result = await useCase.getJournal('s1');
 

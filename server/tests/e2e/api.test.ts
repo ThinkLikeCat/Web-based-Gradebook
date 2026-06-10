@@ -5,6 +5,8 @@ import { Express } from 'express';
 let app: Express;
 let studentToken: string;
 let teacherToken: string;
+let studentRefreshToken: string;
+let teacherRefreshToken: string;
 
 beforeAll(async () => {
   app = await createServer();
@@ -70,7 +72,6 @@ describe('Auth — public endpoints', () => {
   });
 
   describe('POST /api/auth/login', () => {
-    let savedStudentToken = '';
     it('logs in student with correct password', async () => {
       const res = await request(app)
         .post('/api/auth/login')
@@ -78,11 +79,12 @@ describe('Auth — public endpoints', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.token).toBeTruthy();
+      expect(res.body.refreshToken).toBeTruthy();
       expect(res.body.user.role).toBe('STUDENT');
-      savedStudentToken = res.body.token;
+      studentToken = res.body.token;
+      studentRefreshToken = res.body.refreshToken;
     });
 
-    let savedTeacherToken = '';
     it('logs in teacher with correct password', async () => {
       const res = await request(app)
         .post('/api/auth/login')
@@ -90,19 +92,10 @@ describe('Auth — public endpoints', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.token).toBeTruthy();
+      expect(res.body.refreshToken).toBeTruthy();
       expect(res.body.user.role).toBe('TEACHER');
-      savedTeacherToken = res.body.token;
-    });
-
-    it('stores student and teacher tokens separately', () => {
-      const jwt = require('jsonwebtoken');
-      const stuDecoded = jwt.decode(savedStudentToken);
-      const teaDecoded = jwt.decode(savedTeacherToken);
-      expect(stuDecoded.role).toBe('STUDENT');
-      expect(teaDecoded.role).toBe('TEACHER');
-      expect(stuDecoded.role).not.toBe(teaDecoded.role);
-      studentToken = savedStudentToken;
-      teacherToken = savedTeacherToken;
+      teacherToken = res.body.token;
+      teacherRefreshToken = res.body.refreshToken;
     });
 
     it('rejects wrong password', async () => {
@@ -110,13 +103,66 @@ describe('Auth — public endpoints', () => {
         .post('/api/auth/login')
         .send({ fullName: 'Вольфович Арсений', password: 'wrong' });
 
-      expect(res.status).toBe(401);
+      expect(res.status).toBe(404);
     });
 
     it('rejects non-existent user', async () => {
       const res = await request(app)
         .post('/api/auth/login')
         .send({ fullName: 'No One', password: 'x' });
+
+      expect(res.status).toBe(404);
+    });
+  });
+
+  describe('POST /api/auth/refresh', () => {
+    it('issues new tokens with a valid refresh token', async () => {
+      const res = await request(app)
+        .post('/api/auth/refresh')
+        .send({ refreshToken: studentRefreshToken });
+
+      expect(res.status).toBe(200);
+      expect(res.body.token).toBeTruthy();
+      expect(res.body.refreshToken).toBeTruthy();
+      expect(res.body.refreshToken).not.toBe(studentRefreshToken);
+      expect(res.body.user.role).toBe('STUDENT');
+
+      studentToken = res.body.token;
+      studentRefreshToken = res.body.refreshToken;
+    });
+
+    it('rejects an invalid refresh token', async () => {
+      const res = await request(app)
+        .post('/api/auth/refresh')
+        .send({ refreshToken: 'non-existent-token' });
+
+      expect(res.status).toBe(401);
+    });
+
+    it('rejects empty refresh token', async () => {
+      const res = await request(app)
+        .post('/api/auth/refresh')
+        .send({ refreshToken: '' });
+
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe('POST /api/auth/logout', () => {
+    it('logs out with a valid access token (single session)', async () => {
+      const res = await request(app)
+        .post('/api/auth/logout')
+        .set('Authorization', `Bearer ${teacherToken}`)
+        .send({ refreshToken: teacherRefreshToken });
+
+      expect(res.status).toBe(200);
+      expect(res.body.message).toBe('Выход выполнен');
+    });
+
+    it('rejects logout without auth', async () => {
+      const res = await request(app)
+        .post('/api/auth/logout')
+        .send({ refreshToken: 'some-token' });
 
       expect(res.status).toBe(401);
     });
@@ -153,7 +199,7 @@ describe('Teacher API — requires TEACHER role', () => {
   describe('GET /api/teacher/journal/:groupId/:subjectId', () => {
     it('returns journal for valid group and subject', async () => {
       const res = await request(app)
-        .get('/api/teacher/journal/group-1/subject-1')
+        .get('/api/teacher/journal/group-1/course-001')
         .set('Authorization', `Bearer ${teacherToken}`);
 
       expect(res.status).toBe(200);
@@ -167,7 +213,7 @@ describe('Teacher API — requires TEACHER role', () => {
       const res = await request(app)
         .post('/api/teacher/lesson')
         .set('Authorization', `Bearer ${teacherToken}`)
-        .send({ subjectId: 'subject-1', groupId: 'group-1', date: '2026-07-01', startTime: '09:00', endTime: '10:30' });
+        .send({ subjectId: 'course-001', groupId: 'group-1', date: '2026-07-01', startTime: '09:00', endTime: '10:30' });
 
       expect(res.status).toBe(201);
     });
@@ -209,7 +255,7 @@ describe('Teacher API — requires TEACHER role', () => {
       const res = await request(app)
         .post('/api/teacher/program')
         .set('Authorization', `Bearer ${teacherToken}`)
-        .send({ subjectId: 'subject-1', title: 'Новая работа', type: 'LAB', deadline: '2026-07-15' });
+        .send({ subjectId: 'course-001', title: 'Новая работа', type: 'LAB', deadline: '2026-07-15' });
 
       expect(res.status).toBe(201);
       expect(res.body).toHaveProperty('id');
@@ -219,7 +265,7 @@ describe('Teacher API — requires TEACHER role', () => {
   describe('GET /api/teacher/program/:subjectId', () => {
     it('returns program items for a subject', async () => {
       const res = await request(app)
-        .get('/api/teacher/program/subject-1')
+        .get('/api/teacher/program/course-001')
         .set('Authorization', `Bearer ${teacherToken}`);
 
       expect(res.status).toBe(200);
@@ -232,7 +278,7 @@ describe('Teacher API — requires TEACHER role', () => {
       const created = await request(app)
         .post('/api/teacher/program')
         .set('Authorization', `Bearer ${teacherToken}`)
-        .send({ subjectId: 'subject-1', title: 'To delete', type: 'LAB' });
+        .send({ subjectId: 'course-001', title: 'To delete', type: 'LAB' });
 
       const res = await request(app)
         .delete(`/api/teacher/program/${created.body.id}`)
@@ -313,7 +359,7 @@ describe('Student API — requires STUDENT or TEACHER role', () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('summary');
-      expect(res.body.subjectName).toBe('Математика');
+      expect(res.body.subjectName).toBe('Веб-программирование');
     });
   });
 

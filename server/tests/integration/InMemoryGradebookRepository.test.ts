@@ -49,7 +49,7 @@ describe('InMemoryGradebookRepository — integration', () => {
     it('finds student by id', async () => {
       const student = await repo.findStudentById('student-001');
       expect(student).not.toBeNull();
-      expect(student!.name).toBe('Иван Иванов');
+      expect(student!.name).toBe('Вольфович Арсений');
     });
 
     it('returns null for unknown student', async () => {
@@ -59,7 +59,7 @@ describe('InMemoryGradebookRepository — integration', () => {
     it('returns schedule for a student', async () => {
       const schedule = await repo.findScheduleByStudentId('student-001');
       expect(schedule.length).toBeGreaterThan(0);
-      expect(schedule[0].course.name).toBe('Математика');
+      expect(schedule[0].course.name).toBe('Веб-программирование');
     });
 
     it('returns grades for a student', async () => {
@@ -86,7 +86,7 @@ describe('InMemoryGradebookRepository — integration', () => {
     });
 
     it('checks teacher access correctly', async () => {
-      const ok = await repo.checkTeacherAccess(2, 'group-1', 'subject-1');
+      const ok = await repo.checkTeacherAccess(2, 'group-1', 'course-001');
       expect(ok).toBe(true);
 
       const denied = await repo.checkTeacherAccess(2, 'group-1', 'nonexistent');
@@ -104,14 +104,14 @@ describe('InMemoryGradebookRepository — integration', () => {
 
   describe('TeacherJournalRepository', () => {
     it('finds lessons by group and subject', async () => {
-      const lessons = await repo.findLessonsByGroupAndSubject('group-1', 'subject-1');
+      const lessons = await repo.findLessonsByGroupAndSubject('group-1', 'course-001');
       expect(lessons.length).toBeGreaterThan(0);
       expect(lessons[0].id).toBeTruthy();
     });
 
     it('creates a lesson', async () => {
       const lesson = await repo.createLesson({
-        subjectId: 'subject-1',
+        subjectId: 'course-001',
         groupId: 'group-1',
         date: '2026-07-01',
         startTime: '09:00',
@@ -123,17 +123,17 @@ describe('InMemoryGradebookRepository — integration', () => {
     });
 
     it('saves and retrieves grades', async () => {
-      await repo.saveGrade({ studentId: 'student-1', lessonId: 'lesson-1', value: 7, type: 'PRACTICAL' });
-      const grades = await repo.findGradesByGroupAndSubject('group-1', 'subject-1');
-      const found = grades.find(g => g.studentId === 'student-1' && g.lessonId === 'lesson-1');
+      await repo.saveGrade({ studentId: 'student-001', lessonId: 'lesson-1', value: 7, type: 'PRACTICAL' });
+      const grades = await repo.findGradesByGroupAndSubject('group-1', 'course-001');
+      const found = grades.find(g => g.studentId === 'student-001' && g.lessonId === 'lesson-1');
       expect(found).toBeTruthy();
       expect(found!.value).toBe(7);
     });
 
     it('saves and retrieves attendance', async () => {
-      await repo.saveAttendance({ studentId: 'student-1', lessonId: 'lesson-1', status: 'ABSENT' });
-      const records = await repo.findAttendancesByGroupAndSubject('group-1', 'subject-1');
-      const found = records.find(a => a.studentId === 'student-1' && a.lessonId === 'lesson-1');
+      await repo.saveAttendance({ studentId: 'student-001', lessonId: 'lesson-1', status: 'ABSENT' });
+      const records = await repo.findAttendancesByGroupAndSubject('group-1', 'course-001');
+      const found = records.find(a => a.studentId === 'student-001' && a.lessonId === 'lesson-1');
       expect(found).toBeTruthy();
       expect(found!.status).toBe('ABSENT');
     });
@@ -143,14 +143,14 @@ describe('InMemoryGradebookRepository — integration', () => {
 
   describe('TeacherProgramRepository', () => {
     it('finds programs by subject', async () => {
-      const items = await repo.findProgramBySubject('subject-1');
+      const items = await repo.findProgramBySubject('course-001');
       expect(items.length).toBeGreaterThan(0);
       expect(items[0].title).toBeTruthy();
     });
 
     it('creates program item', async () => {
       const item = await repo.createProgramItem({
-        subjectId: 'subject-1',
+        subjectId: 'course-001',
         title: 'Новая работа',
         type: 'LAB',
         deadline: '2026-07-15',
@@ -174,11 +174,11 @@ describe('InMemoryGradebookRepository — integration', () => {
     it('finds lab submissions by program', async () => {
       const submissions = await repo.findLabSubmissionsByProgram('program-1');
       expect(submissions.length).toBeGreaterThan(0);
-      expect(submissions[0].status).toMatch(/^(SUBMITTED|CHECKED)$/);
+      expect(submissions[0].status).toMatch(/^(submitted|pending|graded)$/);
     });
 
     it('updates lab submission', async () => {
-      await repo.updateLabSubmission('submission-2', { grade: 8, comment: 'Great', status: 'CHECKED' });
+      await repo.updateLabSubmission('submission-2', { grade: 8, comment: 'Great', status: 'graded' });
       const updated = await repo.findLabSubmissionById('submission-2');
       expect(updated!.grade).toBe(8);
       expect(updated!.comment).toBe('Great');

@@ -1,6 +1,7 @@
 import { GraduationCap } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { loginStudent, loginTeacher } from './api/auth';
+import { loginStudent, loginTeacher, logoutUser } from './api/auth';
+import { getTokens } from './api/client';
 import { Sidebar } from './components/layout/Sidebar';
 import { groups } from './data/mockData';
 import { useHashRoute } from './hooks/useHashRoute';
@@ -18,7 +19,10 @@ type WorkNotification = {
 };
 
 export function App() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const stored = sessionStorage.getItem('gradebook_user');
+    return stored ? JSON.parse(stored) : null;
+  });
   const [activePage, setActivePage] = useHashRoute();
   const [theme, setTheme] = useState<ThemeColor>('blue');
   const [teacherChoice, setTeacherChoice] = useState<TeacherChoice>({ group: 'Т-394', subject: 'Веб-программирование' });
@@ -69,6 +73,8 @@ export function App() {
         activePage={activePage}
         onNavigate={setActivePage}
         onLogout={() => {
+          logoutUser();
+          sessionStorage.removeItem('gradebook_user');
           setUser(null);
           setActivePage('dashboard');
         }}
@@ -102,6 +108,7 @@ export function App() {
 function LoginScreen({ onLogin }: { onLogin: (user: User) => void }) {
   const [role, setRole] = useState<Role>('student');
   const [lastName, setLastName] = useState('');
+  const [firstName, setFirstName] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [group, setGroup] = useState('Т-394');
   const [password, setPassword] = useState('');
@@ -116,9 +123,10 @@ function LoginScreen({ onLogin }: { onLogin: (user: User) => void }) {
     try {
       const nextUser =
         role === 'student'
-          ? await loginStudent({ lastName, birthDate, group })
-          : await loginTeacher({ lastName, password });
+          ? await loginStudent({ lastName, firstName, birthDate, group, password })
+          : await loginTeacher({ lastName, firstName, password });
 
+      sessionStorage.setItem('gradebook_user', JSON.stringify(nextUser));
       window.location.hash = '/dashboard';
       onLogin(nextUser);
     } catch (loginError) {
@@ -146,6 +154,11 @@ function LoginScreen({ onLogin }: { onLogin: (user: User) => void }) {
               <input value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder="Например: Иванов" />
             </label>
 
+            <label>
+              Имя
+              <input value={firstName} onChange={(event) => setFirstName(event.target.value)} placeholder="Например: Иван" />
+            </label>
+
             {role === 'student' ? (
               <>
                 <label>
@@ -161,17 +174,17 @@ function LoginScreen({ onLogin }: { onLogin: (user: User) => void }) {
                   </select>
                 </label>
               </>
-            ) : (
-              <label>
-                Пароль
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  placeholder="Пароль для входа"
-                />
-              </label>
-            )}
+            ) : null}
+
+            <label>
+              Пароль
+              <input
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="Пароль для входа"
+              />
+            </label>
 
             {error && <p className="form-error">{error}</p>}
 
@@ -186,7 +199,7 @@ function LoginScreen({ onLogin }: { onLogin: (user: User) => void }) {
           <p>
             {role === 'student'
               ? 'Откройте журнал группы и предмета, чтобы выставлять оценки и пропуски.'
-              : 'Вернитесь к входу по фамилии, дате рождения и группе.'}
+              : 'Вернитесь к входу по фамилии, имени и паролю.'}
           </p>
           <button type="button" onClick={() => setRole(role === 'student' ? 'teacher' : 'student')}>
             {role === 'student' ? 'Войти как преподаватель' : 'Войти как студент'}
