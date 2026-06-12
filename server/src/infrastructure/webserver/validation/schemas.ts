@@ -18,7 +18,6 @@ export const registerTeacherSchema = z.object({
 export const loginSchema = z.object({
   fullName: z.string().min(1, 'fullName is required'),
   password: z.string().optional(),
-  birthDate: z.string().optional(),
 });
 
 export const setGradeSchema = z.object({

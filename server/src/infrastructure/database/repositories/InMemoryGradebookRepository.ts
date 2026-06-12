@@ -127,7 +127,7 @@ export class InMemoryGradebookRepository implements
   private teacherLabSubmissions: LabSubmissionData[] = [
     {
       id: 'submission-1',
-      studentId: 'student-1',
+      studentId: 'student-001',
       studentName: 'Вольфович Арсений',
       programId: 'program-1',
       programTitle: 'Лабораторная работа №1',
@@ -139,7 +139,7 @@ export class InMemoryGradebookRepository implements
     },
     {
       id: 'submission-2',
-      studentId: 'student-2',
+      studentId: 'student-002',
       studentName: 'Иванов Иван',
       programId: 'program-1',
       programTitle: 'Лабораторная работа №1',

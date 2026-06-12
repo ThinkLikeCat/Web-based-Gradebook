@@ -18,8 +18,8 @@ export class AuthController {
   });
 
   login = asyncHandler(async (req: Request, res: Response) => {
-    const { fullName, password, birthDate } = req.body;
-    const result = await this.authUseCase.login({ fullName, password, birthDate });
+    const { fullName, password } = req.body;
+    const result = await this.authUseCase.login({ fullName, password });
     res.json(result);
   });
 

@@ -16,7 +16,6 @@ export interface RegisterTeacherDto {
 export interface LoginDto {
   fullName: string;
   password?: string;
-  birthDate?: string;
 }
 
 export interface AuthResultDto {
