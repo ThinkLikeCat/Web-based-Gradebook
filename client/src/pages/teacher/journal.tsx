@@ -1,6 +1,8 @@
+import { Inbox } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Journal } from '../student/journal';
 import { getTeacherGroups, getTeacherJournal } from '../../api/teacher';
+import { SkeletonGrid } from '../../components/ui/AsyncState';
 import type { JournalCell, TeacherChoice } from '../../types';
 
 export function TeacherJournal({
@@ -15,17 +17,33 @@ export function TeacherJournal({
   const [students, setStudents] = useState<Array<{ id: string; name: string; shortName: string }>>([]);
   const [cells, setCells] = useState<JournalCell[]>([]);
   const [dates, setDates] = useState<string[]>([]);
+  const [dateLessonMap, setDateLessonMap] = useState<Map<string, string>>(new Map());
+  const [loading, setLoading] = useState(true);
 
   const uniqueGroups = [...new Set(groupInfos.map(g => g.groupName))];
-  const uniqueSubjects = [...new Set(groupInfos.map(g => g.subjectName))];
+  const groupSubjectNames = [...new Set(
+    groupInfos
+      .filter(g => g.groupName === choice.group)
+      .map(g => g.subjectName)
+  )];
 
   useEffect(() => {
+    setLoading(true);
     getTeacherGroups()
       .then(data => setGroupInfos(data))
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
+    if (choice.group && !groupSubjectNames.includes(choice.subject)) {
+      const firstSubject = groupSubjectNames[0];
+      if (firstSubject && firstSubject !== choice.subject) {
+        onChoiceChange({ ...choice, subject: firstSubject });
+        return;
+      }
+    }
+
     const info = groupInfos.find(g => g.groupName === choice.group && g.subjectName === choice.subject);
     if (!info) return;
 
@@ -34,12 +52,34 @@ export function TeacherJournal({
         setStudents(data.students);
         setCells(data.cells);
         setDates(data.dates);
+        setDateLessonMap(data.dateLessonMap);
       })
       .catch(() => {});
   }, [choice.group, choice.subject, groupInfos]);
 
+  if (loading) {
+    return (
+      <div className="teacher-journal-page">
+        <header className="page-head">
+          <div>
+            <span className="eyebrow">Журнал</span>
+            <h1>Электронный журнал</h1>
+          </div>
+        </header>
+        <SkeletonGrid count={3} />
+      </div>
+    );
+  }
+
   if (groupInfos.length === 0) {
-    return <div className="teacher-journal-page"><p>Загрузка...</p></div>;
+    return (
+      <div className="teacher-journal-page">
+        <div className="async-state" style={{ minHeight: 260 }}>
+          <Inbox size={32} />
+          Нет доступных журналов
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -57,7 +97,7 @@ export function TeacherJournal({
           <label>
             Предмет
             <select value={choice.subject} onChange={(event) => onChoiceChange({ ...choice, subject: event.target.value })}>
-              {uniqueSubjects.map((subject) => (
+              {groupSubjectNames.map((subject) => (
                 <option key={subject}>{subject}</option>
               ))}
             </select>
@@ -73,6 +113,7 @@ export function TeacherJournal({
         rows={students}
         cells={cells}
         dates={dates}
+        dateLessonMap={dateLessonMap}
         leftHeader="ФИО ученика"
         cornerTop="Даты занятий"
         cornerBottom="ФИО ученика"

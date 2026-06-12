@@ -1,5 +1,3 @@
-import { config } from '../../config';
-import { InMemoryGradebookRepository } from '../database/repositories/InMemoryGradebookRepository';
 import { getPool } from '../database/postgres/connection';
 import { PostgresAuthRepository } from '../database/postgres/repositories/PostgresAuthRepository';
 import { PostgresSessionRepository } from '../database/postgres/repositories/PostgresSessionRepository';
@@ -13,37 +11,30 @@ import { StudentUseCaseImpl } from '../../application/usecases/student.usecase';
 import { AuthController } from '../../interfaces/controllers/auth.controller';
 import { TeacherController } from '../../interfaces/controllers/teacher.controller';
 import { StudentController } from '../../interfaces/controllers/student.controller';
+import type { AuthUseCase } from '../../application/ports/in/auth.usecase';
+import type { TeacherUseCase } from '../../application/ports/in/teacher.usecase';
+import type { StudentUseCase } from '../../application/ports/in/student.usecase';
 
-function buildRepositories() {
-  if (config.useDatabase) {
-    const pool = getPool();
-    return {
-      authRepo: new PostgresAuthRepository(pool),
-      sessionRepo: new PostgresSessionRepository(pool),
-      studentReadRepo: new PostgresStudentReadRepository(pool),
-      teacherAccessRepo: new PostgresTeacherAccessRepository(pool),
-      teacherJournalRepo: new PostgresTeacherJournalRepository(pool),
-      teacherProgramRepo: new PostgresTeacherProgramRepository(pool),
-    };
-  }
+let _authUseCase: AuthUseCase;
+let _teacherUseCase: TeacherUseCase;
+let _studentUseCase: StudentUseCase;
+let _authController: AuthController;
+let _teacherController: TeacherController;
+let _studentController: StudentController;
+let _initialized = false;
 
-  const mem = new InMemoryGradebookRepository();
-  return {
-    authRepo: mem,
-    sessionRepo: mem,
-    studentReadRepo: mem,
-    teacherAccessRepo: mem,
-    teacherJournalRepo: mem,
-    teacherProgramRepo: mem,
-  };
+function ensureInit() {
+  if (_initialized) return;
+  const pool = getPool();
+  _authUseCase = new AuthUseCaseImpl(new PostgresAuthRepository(pool), new PostgresSessionRepository(pool));
+  _teacherUseCase = new TeacherUseCaseImpl(new PostgresTeacherAccessRepository(pool), new PostgresTeacherJournalRepository(pool), new PostgresTeacherProgramRepository(pool));
+  _studentUseCase = new StudentUseCaseImpl(new PostgresStudentReadRepository(pool));
+  _authController = new AuthController(_authUseCase);
+  _teacherController = new TeacherController(_teacherUseCase);
+  _studentController = new StudentController(_studentUseCase);
+  _initialized = true;
 }
 
-const repos = buildRepositories();
-
-export const authUseCase = new AuthUseCaseImpl(repos.authRepo, repos.sessionRepo);
-export const teacherUseCase = new TeacherUseCaseImpl(repos.teacherAccessRepo, repos.teacherJournalRepo, repos.teacherProgramRepo);
-export const studentUseCase = new StudentUseCaseImpl(repos.studentReadRepo);
-
-export const authController = new AuthController(authUseCase);
-export const teacherController = new TeacherController(teacherUseCase);
-export const studentController = new StudentController(studentUseCase);
+export function getAuthController(): AuthController { ensureInit(); return _authController; }
+export function getTeacherController(): TeacherController { ensureInit(); return _teacherController; }
+export function getStudentController(): StudentController { ensureInit(); return _studentController; }

@@ -51,15 +51,17 @@ describe('StudentUseCase', () => {
   });
 
   describe('getJournal', () => {
-    it('returns journal with grades and attendance', async () => {
+    it('returns journal with grades, attendance and dates', async () => {
       const student = new Student(new StudentId('s1'), 'Иван', 'Группа 1');
+      const course = new Course(new CourseId('c1'), 'Математика', 'Петров', [{ day: 'Пн', time: '09:00', room: '101' }]);
       const grade = new Grade('s1', 'c1', 8, 'lab', '2026-05-15');
       const attendance = new Attendance('s1', 'c1', '2026-05-12', 'PRESENT');
 
       mockRepo.findStudentById.mockResolvedValue(student);
+      mockRepo.findScheduleByStudentId.mockResolvedValue([{ course }]);
       mockRepo.findGradesByStudentId.mockResolvedValue([grade]);
       mockRepo.findAttendanceByStudentId.mockResolvedValue([attendance]);
-      mockRepo.findCoursesByIds.mockResolvedValue([new Course(new CourseId('c1'), 'Математика', 'Петров', [{ day: 'Пн', time: '09:00', room: '101' }])]);
+      mockRepo.findCoursesByIds.mockResolvedValue([course]);
 
       const result = await useCase.getJournal('s1');
 
@@ -67,6 +69,8 @@ describe('StudentUseCase', () => {
       expect(result.grades[0].value).toBe(8);
       expect(result.attendance).toHaveLength(1);
       expect(result.attendance[0].status).toBe('PRESENT');
+      expect(result.dates).toContain('2026-05-12');
+      expect(result.dates).toContain('2026-05-15');
     });
   });
 

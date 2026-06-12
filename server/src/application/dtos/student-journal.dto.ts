@@ -18,4 +18,5 @@ export type StudentJournalDto = {
   studentName: string;
   grades: StudentGradeDto[];
   attendance: StudentAttendanceDto[];
+  dates: string[];
 };

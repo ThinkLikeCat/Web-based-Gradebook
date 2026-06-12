@@ -28,10 +28,11 @@ export async function getStudentJournal(studentId: string): Promise<StudentJourn
     studentName: string;
     grades: Array<{ subjectId: string; subjectName: string; type: string; value: number; date: string }>;
     attendance: Array<{ subjectId: string; subjectName: string; date: string; status: string }>;
+    dates: string[];
   }>(`/api/students/${studentId}/journal`);
 
   const subjectMap = new Map<string, SubjectRow>();
-  const dateSet = new Set<string>();
+  const dateSet = new Set<string>(data.dates);
   const gradesByKey = new Map<string, string[]>();
   const absencesByKey = new Map<string, string[]>();
 

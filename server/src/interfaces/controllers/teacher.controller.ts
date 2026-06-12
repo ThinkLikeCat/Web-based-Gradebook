@@ -11,6 +11,12 @@ export class TeacherController {
     res.json(groups);
   });
 
+  getStats = asyncHandler(async (req: Request, res: Response) => {
+    const teacherId = req.user!.id;
+    const stats = await this.teacherUseCase.getTeacherStats(teacherId);
+    res.json(stats);
+  });
+
   getJournal = asyncHandler(async (req: Request, res: Response) => {
     const teacherId = req.user!.id;
     const { groupId, subjectId } = req.params;

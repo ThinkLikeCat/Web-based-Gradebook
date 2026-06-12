@@ -5,6 +5,7 @@ import { StudentScheduleDto } from '../dtos/student-schedule.dto';
 import { StudentJournalDto } from '../dtos/student-journal.dto';
 import { StudentSubjectProgressDto } from '../dtos/student-subject.dto';
 import { StudentLabDetailDto } from '../dtos/student-lab.dto';
+import { generateDateStrings } from '../utils/generateLessons';
 
 export class StudentUseCaseImpl implements StudentUseCase {
   constructor(private readonly repository: StudentReadRepository) {}
@@ -45,6 +46,31 @@ export class StudentUseCaseImpl implements StudentUseCase {
     const courses = await this.repository.findCoursesByIds(allSubjectIds);
     const courseMap = new Map(courses.map(c => [c.id.value, c.name]));
 
+    const scheduleEntries = await this.repository.findScheduleByStudentId(studentId);
+
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + 2, 0);
+
+    const dateSet = new Set<string>();
+
+    for (const { course } of scheduleEntries) {
+      const scheduleDates = generateDateStrings(course.schedule, start, end);
+      for (const d of scheduleDates) {
+        dateSet.add(d);
+      }
+    }
+
+    for (const g of grades) {
+      dateSet.add(g.date);
+    }
+
+    for (const a of attendance) {
+      dateSet.add(a.date);
+    }
+
+    const dates = [...dateSet].sort();
+
     const gradeRows = grades.map((grade) => ({
       subjectId: grade.subjectId,
       subjectName: courseMap.get(grade.subjectId) ?? 'Неизвестный предмет',
@@ -65,6 +91,7 @@ export class StudentUseCaseImpl implements StudentUseCase {
       studentName: student.name,
       grades: gradeRows,
       attendance: attendanceRows,
+      dates,
     };
   }
 

@@ -4,8 +4,14 @@ import { GradeSubmissionDto } from '../../dtos/teacher-lab.dto';
 import { TeacherGroupInfo } from '../../../domain/repositories/TeacherAccessRepository';
 import { ProgramItemData, LabSubmissionData } from '../../../domain/repositories/TeacherProgramRepository';
 
+export interface TeacherStatsDto {
+  lessonsThisMonth: number;
+  pendingSubmissions: number;
+}
+
 export interface TeacherUseCase {
   getTeacherGroups(teacherId: number): Promise<TeacherGroupInfo[]>;
+  getTeacherStats(teacherId: number): Promise<TeacherStatsDto>;
   getJournal(teacherId: number, groupId: string, subjectId: string): Promise<TeacherJournalDto>;
   setGrade(teacherId: number, data: { studentId: string; lessonId: string; value: number; type: string }): Promise<void>;
   setAttendance(teacherId: number, data: { studentId: string; lessonId: string; status: 'PRESENT' | 'LATE' | 'ABSENT' }): Promise<void>;

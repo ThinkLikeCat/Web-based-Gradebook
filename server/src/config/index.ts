@@ -14,5 +14,4 @@ export const config = {
     poolIdleTimeoutMs: parseInt(process.env.DB_POOL_IDLE_TIMEOUT_MS || '10000', 10),
     poolConnectionTimeoutMs: parseInt(process.env.DB_POOL_CONNECTION_TIMEOUT_MS || '10000', 10),
   },
-  useDatabase: process.env.USE_DB === 'true',
 };

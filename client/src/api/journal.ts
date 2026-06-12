@@ -1,4 +1,3 @@
-import { journalCells, journalDates, subjects } from '../data/mockData';
 import type { JournalCell, JournalMode, SubjectRow } from '../types';
 import { apiRequest } from './client';
 import { getStudentJournal } from './student';
@@ -21,15 +20,11 @@ function getStoredStudentId(): string {
 
 export async function getJournalData(): Promise<JournalData> {
   const studentId = getStoredStudentId();
-  if (studentId) {
-    try {
-      return await getStudentJournal(studentId);
-    } catch {
-      return { dates: journalDates, subjects, cells: journalCells };
-    }
+  if (!studentId) {
+    return { dates: [], subjects: [], cells: [] };
   }
 
-  return { dates: journalDates, subjects, cells: journalCells };
+  return getStudentJournal(studentId);
 }
 
 export function validateCellValue(mode: JournalMode, rawValue: string): string[] {
@@ -42,9 +37,14 @@ export function validateCellValue(mode: JournalMode, rawValue: string): string[]
   const parts = normalized.split('/').map((part) => part.trim()).filter(Boolean);
 
   if (mode === 'marks') {
-    const isValidMark = (part: string) => part === 'ЗЧ' || /^\d{1,2}$/.test(part);
+    const isValidMark = (part: string) => {
+      if (part === 'ЗЧ') return true;
+      if (!/^\d{1,2}$/.test(part)) return false;
+      const num = Number(part);
+      return num >= 1 && num <= 10;
+    };
     if (!parts.every(isValidMark)) {
-      throw new Error('Для оценок можно вводить числа, ЗЧ и дробь через /');
+      throw new Error('Оценки должны быть от 1 до 10, ЗЧ или дробь через /');
     }
   }
 

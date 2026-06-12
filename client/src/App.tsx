@@ -1,8 +1,9 @@
-import { GraduationCap } from 'lucide-react';
+import { Eye, EyeOff, GraduationCap } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { loginStudent, loginTeacher, logoutUser } from './api/auth';
 import { getTokens } from './api/client';
 import { Sidebar } from './components/layout/Sidebar';
+import { ToastContainer } from './components/ui/Toast';
 import { groups } from './data/mockData';
 import { useHashRoute } from './hooks/useHashRoute';
 import { Dashboard } from './pages/student/dashboard';
@@ -101,6 +102,8 @@ export function App() {
         )}
         {activePage === 'settings' && <SettingsPage theme={theme} onThemeChange={setTheme} />}
       </main>
+
+      <ToastContainer notifications={notifications.map(n => n.work)} />
     </div>
   );
 }
@@ -112,6 +115,7 @@ function LoginScreen({ onLogin }: { onLogin: (user: User) => void }) {
   const [birthDate, setBirthDate] = useState('');
   const [group, setGroup] = useState('Т-394');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -151,7 +155,7 @@ function LoginScreen({ onLogin }: { onLogin: (user: User) => void }) {
           <form onSubmit={handleSubmit} className="login-form">
             <label>
               Фамилия
-              <input value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder="Например: Иванов" />
+              <input value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder="Например: Иванов" autoFocus />
             </label>
 
             <label>
@@ -178,18 +182,29 @@ function LoginScreen({ onLogin }: { onLogin: (user: User) => void }) {
 
             <label>
               Пароль
-              <input
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="Пароль для входа"
-              />
+              <div className="input-wrap">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Пароль для входа"
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword((v) => !v)}
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </label>
 
             {error && <p className="form-error">{error}</p>}
 
             <button className="primary-button" type="submit" disabled={loading}>
-              {loading ? 'Проверяем...' : 'Войти'}
+              {loading ? <><span className="spinner" /> Проверяем...</> : 'Войти'}
             </button>
           </form>
         </div>
@@ -201,7 +216,7 @@ function LoginScreen({ onLogin }: { onLogin: (user: User) => void }) {
               ? 'Откройте журнал группы и предмета, чтобы выставлять оценки и пропуски.'
               : 'Вернитесь к входу по фамилии, имени и паролю.'}
           </p>
-          <button type="button" onClick={() => setRole(role === 'student' ? 'teacher' : 'student')}>
+          <button type="button" onClick={() => { setRole(role === 'student' ? 'teacher' : 'student'); setError(''); }}>
             {role === 'student' ? 'Войти как преподаватель' : 'Войти как студент'}
           </button>
         </aside>

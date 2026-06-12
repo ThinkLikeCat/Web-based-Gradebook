@@ -1,7 +1,7 @@
-import { BookOpenCheck, CalendarDays, Clock, FileText } from 'lucide-react';
+import { BookOpenCheck, CalendarDays, Clock, FileText, Inbox } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { getDashboardData } from '../../api/schedule';
-import { ErrorState, LoadingState } from '../../components/ui/AsyncState';
+import { ErrorState, LoadingState, SkeletonGrid } from '../../components/ui/AsyncState';
 import type { Deadline, Exam, PlannedWork, ScheduleItem, User } from '../../types';
 
 function formatDate(date: string) {
@@ -51,7 +51,22 @@ export function Dashboard({
   }
 
   if (!dashboardData) {
-    return <LoadingState label="Загружаем главную страницу..." />;
+    return (
+      <div className="dashboard-grid">
+        <section className="content-column">
+          <header className="page-head">
+            <div>
+              <span className="eyebrow">Загрузка...</span>
+              <h1>Главная</h1>
+            </div>
+          </header>
+          <SkeletonGrid count={3} />
+        </section>
+        <aside className="right-column">
+          <SkeletonGrid count={2} />
+        </aside>
+      </div>
+    );
   }
 
   return (
@@ -85,6 +100,12 @@ export function Dashboard({
           </div>
 
           <div className="deadline-list">
+            {dashboardData.deadlines.length === 0 && (
+              <div className="async-state" style={{ gridColumn: '1 / -1', minHeight: 100 }}>
+                <Inbox size={24} />
+                Нет активных дедлайнов
+              </div>
+            )}
             {dashboardData.deadlines.map((deadline) => (
               <article className={`deadline-card ${deadline.status}`} key={deadline.id}>
                 <div>

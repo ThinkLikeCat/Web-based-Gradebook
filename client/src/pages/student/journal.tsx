@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getJournalData, updateJournalCell, validateCellValue } from '../../api/journal';
+import { saveGrade, saveAttendance } from '../../api/teacher';
 import type { JournalCell, JournalMode, Role, SubjectRow } from '../../types';
 
 type JournalData = {
@@ -8,7 +9,7 @@ type JournalData = {
   cells: JournalCell[];
 };
 
-const monthNames = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль'];
+const monthNames = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
 
 export function Journal({
   role,
@@ -16,6 +17,7 @@ export function Journal({
   rows,
   cells,
   dates: propDates,
+  dateLessonMap,
   leftHeader = 'Предмет',
   cornerTop,
   cornerBottom = 'Даты занятий',
@@ -25,6 +27,7 @@ export function Journal({
   rows?: SubjectRow[];
   cells?: JournalCell[];
   dates?: string[];
+  dateLessonMap?: Map<string, string>;
   leftHeader?: string;
   cornerTop?: string;
   cornerBottom?: string;
@@ -66,7 +69,7 @@ export function Journal({
     return getVisibleValues(findCell(subjectId, date), mode);
   }
 
-  function saveCell() {
+  async function saveCell() {
     if (!editing) {
       return;
     }
@@ -74,6 +77,21 @@ export function Journal({
     try {
       const rawValue = mode === 'absences' && editing.value.includes('ОП') ? applyLateMinutes(editing.value, editing.lateMinutes) : editing.value;
       const values = validateCellValue(mode, rawValue);
+      const firstValue = values[0];
+      const lessonId = dateLessonMap?.get(editing.date);
+
+      if (role === 'teacher' && lessonId && firstValue) {
+        if (mode === 'marks') {
+          const num = parseInt(firstValue, 10);
+          if (Number.isFinite(num)) {
+            await saveGrade(editing.subjectId, lessonId, num, 'PRACTICAL');
+          }
+        } else {
+          const status = firstValue.startsWith('ОП') ? 'LATE' : 'ABSENT';
+          await saveAttendance(editing.subjectId, lessonId, status);
+        }
+      }
+
       setData((current) => ({
         ...current,
         cells: updateJournalCell(current.cells, editing.subjectId, editing.date, mode, values),
@@ -85,9 +103,19 @@ export function Journal({
     }
   }
 
-  function quickSet(subjectId: string, date: string, nextMode: JournalMode, value: string) {
+  async function quickSet(subjectId: string, date: string, nextMode: JournalMode, value: string) {
     if (role !== 'teacher' || !canEdit) {
       return;
+    }
+
+    const lessonId = dateLessonMap?.get(date);
+    if (lessonId) {
+      try {
+        const status = value.startsWith('ОП') ? 'LATE' : 'ABSENT';
+        await saveAttendance(subjectId, lessonId, status);
+      } catch {
+        return;
+      }
     }
 
     setData((current) => ({

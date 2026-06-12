@@ -1,29 +1,20 @@
 import 'dotenv/config';
+import { createServer } from './infrastructure/webserver/server';
 import { config } from './config';
 import { closePool, getPool } from './infrastructure/database/postgres/connection';
 import { runMigrations } from './infrastructure/database/postgres/migrate';
 
 async function main() {
-  if (config.useDatabase) {
-    console.log('Connecting to PostgreSQL...');
-    const pool = getPool();
-    try {
-      await pool.query('SELECT 1');
-      console.log('Database connected. Running migrations...');
-      await runMigrations();
-    } catch (err) {
-      console.error('Database connection failed:', err);
-      console.log('Falling back to in-memory storage...');
-      config.useDatabase = false;
-    }
-  }
+  console.log('Connecting to PostgreSQL...');
+  const pool = getPool();
+  await pool.query('SELECT 1');
+  console.log('Database connected. Running migrations...');
+  await runMigrations();
 
-  const { createServer } = await import('./infrastructure/webserver/server.js');
   const app = await createServer();
 
   app.listen(config.port, () => {
     console.log(`Server running on http://localhost:${config.port}`);
-    console.log(`Storage: ${config.useDatabase ? 'PostgreSQL' : 'In-Memory'}`);
   });
 }
 

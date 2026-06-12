@@ -30,4 +30,5 @@ export interface TeacherProgramRepository {
   findLabSubmissionsByProgram(programId: string): Promise<LabSubmissionData[]>;
   findLabSubmissionById(submissionId: string): Promise<LabSubmissionData | null>;
   updateLabSubmission(submissionId: string, data: Partial<Omit<LabSubmissionData, 'id'>>): Promise<void>;
+  findPendingSubmissionCountByTeacher(teacherId: number): Promise<number>;
 }

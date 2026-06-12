@@ -1,15 +1,17 @@
 import { Router } from 'express';
-import { authController } from '../../di/container';
+import { getAuthController } from '../../di/container';
 import { validate } from '../middleware/validate';
 import { authMiddleware } from '../middleware/auth';
 import { registerStudentSchema, registerTeacherSchema, loginSchema, refreshTokenSchema } from '../validation/schemas';
 
 const router = Router();
 
-router.post('/auth/register/student', validate(registerStudentSchema), authController.registerStudent.bind(authController));
-router.post('/auth/register/teacher', validate(registerTeacherSchema), authController.registerTeacher.bind(authController));
-router.post('/auth/login', validate(loginSchema), authController.login.bind(authController));
-router.post('/auth/refresh', validate(refreshTokenSchema), authController.refreshToken.bind(authController));
-router.post('/auth/logout', authMiddleware, authController.logout.bind(authController));
+function c() { return getAuthController(); }
+
+router.post('/auth/register/student', validate(registerStudentSchema), (req, res, next) => c().registerStudent(req, res, next));
+router.post('/auth/register/teacher', validate(registerTeacherSchema), (req, res, next) => c().registerTeacher(req, res, next));
+router.post('/auth/login', validate(loginSchema), (req, res, next) => c().login(req, res, next));
+router.post('/auth/refresh', validate(refreshTokenSchema), (req, res, next) => c().refreshToken(req, res, next));
+router.post('/auth/logout', authMiddleware, (req, res, next) => c().logout(req, res, next));
 
 export default router;

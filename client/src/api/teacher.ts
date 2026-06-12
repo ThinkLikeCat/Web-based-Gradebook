@@ -16,6 +16,7 @@ export async function getTeacherJournal(groupId: string, subjectId: string): Pro
   students: SubjectRow[];
   dates: string[];
   cells: JournalCell[];
+  dateLessonMap: Map<string, string>;
 }> {
   const data = await apiRequest<{
     groupId: string;
@@ -29,6 +30,7 @@ export async function getTeacherJournal(groupId: string, subjectId: string): Pro
   }>(`/api/teacher/journal/${groupId}/${subjectId}`);
 
   const lessonDateMap = new Map(data.lessons.map(l => [l.id, l.date]));
+  const dateLessonMap = new Map(data.lessons.map(l => [l.date, l.id]));
   const dates = data.lessons.map(l => l.date);
   const students: SubjectRow[] = data.students.map(s => ({
     id: s.id,
@@ -59,7 +61,7 @@ export async function getTeacherJournal(groupId: string, subjectId: string): Pro
     }
   }
 
-  return { students, dates, cells };
+  return { students, dates, cells, dateLessonMap };
 }
 
 export async function saveGrade(studentId: string, lessonId: string, value: number, type: string): Promise<void> {
@@ -67,6 +69,10 @@ export async function saveGrade(studentId: string, lessonId: string, value: numb
     method: 'POST',
     body: { studentId, lessonId, value, type },
   });
+}
+
+export async function getTeacherStats(): Promise<{ lessonsThisMonth: number; pendingSubmissions: number }> {
+  return apiRequest<{ lessonsThisMonth: number; pendingSubmissions: number }>('/api/teacher/stats');
 }
 
 export async function saveAttendance(studentId: string, lessonId: string, status: 'PRESENT' | 'LATE' | 'ABSENT'): Promise<void> {

@@ -1,14 +1,16 @@
 import { Router } from 'express';
-import { studentController } from '../../di/container';
+import { getStudentController } from '../../di/container';
 import { authMiddleware, requireRole } from '../middleware/auth';
 
 const router = Router();
 
 router.use(authMiddleware);
 
-router.get('/students/:id/schedule', requireRole(['STUDENT', 'TEACHER']), studentController.getSchedule.bind(studentController));
-router.get('/students/:id/journal', requireRole(['STUDENT', 'TEACHER']), studentController.getJournal.bind(studentController));
-router.get('/students/:id/subjects/:subjectId', requireRole(['STUDENT', 'TEACHER']), studentController.getSubjectProgress.bind(studentController));
-router.get('/students/:id/labs/:labId', requireRole(['STUDENT', 'TEACHER']), studentController.getLabDetails.bind(studentController));
+function c() { return getStudentController(); }
+
+router.get('/students/:id/schedule', requireRole(['STUDENT', 'TEACHER']), (req, res, next) => c().getSchedule(req, res, next));
+router.get('/students/:id/journal', requireRole(['STUDENT', 'TEACHER']), (req, res, next) => c().getJournal(req, res, next));
+router.get('/students/:id/subjects/:subjectId', requireRole(['STUDENT', 'TEACHER']), (req, res, next) => c().getSubjectProgress(req, res, next));
+router.get('/students/:id/labs/:labId', requireRole(['STUDENT', 'TEACHER']), (req, res, next) => c().getLabDetails(req, res, next));
 
 export default router;

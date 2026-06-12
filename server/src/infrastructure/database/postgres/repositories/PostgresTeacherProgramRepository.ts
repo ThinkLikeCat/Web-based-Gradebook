@@ -110,6 +110,18 @@ export class PostgresTeacherProgramRepository implements TeacherProgramRepositor
     };
   }
 
+  async findPendingSubmissionCountByTeacher(teacherId: number): Promise<number> {
+    const result = await this.pool.query(
+      `SELECT COUNT(*) AS cnt
+       FROM teacher_lab_submissions tls
+       JOIN programs p ON p.id = tls.program_id
+       JOIN teacher_groups tg ON tg.subject_id = p.subject_id
+       WHERE tg.teacher_id = $1 AND tls.grade IS NULL AND tls.status = 'submitted'`,
+      [teacherId],
+    );
+    return Number(result.rows[0].cnt);
+  }
+
   async updateLabSubmission(submissionId: string, data: Partial<Omit<LabSubmissionData, 'id'>>): Promise<void> {
     const sets: string[] = [];
     const params: any[] = [];

@@ -1,4 +1,4 @@
-import { TeacherUseCase } from '../ports/in/teacher.usecase';
+import { TeacherUseCase, TeacherStatsDto } from '../ports/in/teacher.usecase';
 import { TeacherStudentData, TeacherGroupInfo, TeacherAccessRepository } from '../../domain/repositories/TeacherAccessRepository';
 import { TeacherLessonData, TeacherGradeData, TeacherAttendanceData, TeacherJournalRepository } from '../../domain/repositories/TeacherJournalRepository';
 import { ProgramItemData, LabSubmissionData, TeacherProgramRepository } from '../../domain/repositories/TeacherProgramRepository';
@@ -8,6 +8,7 @@ import { GradeValue } from '../../domain/value-objects/GradeValue';
 import { TeacherJournalDto, TeacherJournalStudentDto, TeacherJournalLessonDto, TeacherJournalGradeDto, TeacherJournalAttendanceDto } from '../dtos/teacher-journal.dto';
 import { CreateProgramItemDto } from '../dtos/teacher-program.dto';
 import { GradeSubmissionDto } from '../dtos/teacher-lab.dto';
+import { generateLessonDates } from '../utils/generateLessons';
 
 export class TeacherUseCaseImpl implements TeacherUseCase {
   constructor(
@@ -20,6 +21,15 @@ export class TeacherUseCaseImpl implements TeacherUseCase {
     return this.accessRepo.findTeacherGroups(teacherId);
   }
 
+  async getTeacherStats(teacherId: number): Promise<TeacherStatsDto> {
+    const now = new Date();
+    const [lessonsThisMonth, pendingSubmissions] = await Promise.all([
+      this.journalRepo.findLessonCountByTeacherAndMonth(teacherId, now.getFullYear(), now.getMonth() + 1),
+      this.programRepo.findPendingSubmissionCountByTeacher(teacherId),
+    ]);
+    return { lessonsThisMonth, pendingSubmissions };
+  }
+
   async getJournal(teacherId: number, groupId: string, subjectId: string): Promise<TeacherJournalDto> {
     const hasAccess = await this.accessRepo.checkTeacherAccess(teacherId, groupId, subjectId);
     if (!hasAccess) {
@@ -29,9 +39,23 @@ export class TeacherUseCaseImpl implements TeacherUseCase {
     const group = await this.accessRepo.findGroupById(groupId);
     const subject = await this.accessRepo.findSubjectById(subjectId);
     const students = await this.accessRepo.findStudentsByGroup(groupId);
-    const lessons = await this.journalRepo.findLessonsByGroupAndSubject(groupId, subjectId);
+    let lessons = await this.journalRepo.findLessonsByGroupAndSubject(groupId, subjectId);
     const grades = await this.journalRepo.findGradesByGroupAndSubject(groupId, subjectId);
     const attendances = await this.journalRepo.findAttendancesByGroupAndSubject(groupId, subjectId);
+
+    const schedule = await this.journalRepo.findCourseScheduleBySubject(subjectId);
+    if (schedule.length > 0) {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const end = new Date(now.getFullYear(), now.getMonth() + 2, 0);
+      const existingDates = new Set(lessons.map(l => l.date));
+      const newLessons = generateLessonDates(schedule, subjectId, groupId, existingDates, start, end);
+      for (const lessonData of newLessons) {
+        const created = await this.journalRepo.createLesson(lessonData);
+        lessons.push(created);
+      }
+      lessons.sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
+    }
 
     return {
       groupId,

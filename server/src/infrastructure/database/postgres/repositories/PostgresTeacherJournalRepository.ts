@@ -1,5 +1,6 @@
+import { randomUUID } from 'crypto';
 import { Pool } from 'pg';
-import { TeacherJournalRepository, TeacherLessonData, TeacherGradeData, TeacherAttendanceData, CreateLessonData, SaveGradeData, SaveAttendanceData } from '../../../../domain/repositories/TeacherJournalRepository';
+import { TeacherJournalRepository, TeacherLessonData, TeacherGradeData, TeacherAttendanceData, CreateLessonData, SaveGradeData, SaveAttendanceData, CourseScheduleItem } from '../../../../domain/repositories/TeacherJournalRepository';
 
 export class PostgresTeacherJournalRepository implements TeacherJournalRepository {
   constructor(private readonly pool: Pool) {}
@@ -30,12 +31,24 @@ export class PostgresTeacherJournalRepository implements TeacherJournalRepositor
   }
 
   async createLesson(data: CreateLessonData): Promise<TeacherLessonData> {
-    const id = `lesson-${Date.now()}`;
+    const id = randomUUID();
     await this.pool.query(
       'INSERT INTO lessons (id, subject_id, group_id, date, start_time, end_time) VALUES ($1, $2, $3, $4, $5, $6)',
       [id, data.subjectId, data.groupId, data.date, data.startTime, data.endTime],
     );
     return { id, ...data };
+  }
+
+  async findCourseScheduleBySubject(subjectId: string): Promise<CourseScheduleItem[]> {
+    const result = await this.pool.query(
+      'SELECT day, time, room FROM course_schedule WHERE course_id = $1 ORDER BY id',
+      [subjectId],
+    );
+    return result.rows.map(r => ({
+      day: r.day,
+      time: r.time,
+      room: r.room,
+    }));
   }
 
   async findGradesByGroupAndSubject(groupId: string, subjectId: string): Promise<TeacherGradeData[]> {
@@ -85,5 +98,20 @@ export class PostgresTeacherJournalRepository implements TeacherJournalRepositor
        ON CONFLICT (student_id, lesson_id) DO UPDATE SET status = EXCLUDED.status`,
       [data.studentId, data.lessonId, data.status],
     );
+  }
+
+  async findLessonCountByTeacherAndMonth(teacherId: number, year: number, month: number): Promise<number> {
+    const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+    const endDate = month === 12
+      ? `${year + 1}-01-01`
+      : `${year}-${String(month + 1).padStart(2, '0')}-01`;
+    const result = await this.pool.query(
+      `SELECT COUNT(*) AS cnt
+       FROM lessons l
+       JOIN teacher_groups tg ON tg.group_id = l.group_id AND tg.subject_id = l.subject_id
+       WHERE tg.teacher_id = $1 AND l.date >= $2 AND l.date < $3`,
+      [teacherId, startDate, endDate],
+    );
+    return Number(result.rows[0].cnt);
   }
 }

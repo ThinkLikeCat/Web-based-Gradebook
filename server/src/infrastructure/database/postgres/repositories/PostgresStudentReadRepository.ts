@@ -38,7 +38,10 @@ export class PostgresStudentReadRepository implements StudentReadRepository {
 
   async findGradesByStudentId(studentId: string): Promise<Grade[]> {
     const result = await this.pool.query(
-      'SELECT student_id, subject_id, value, type, date FROM grades WHERE student_id = $1',
+      `SELECT tg.student_id, l.subject_id, tg.value, tg.type, l.date
+       FROM teacher_grades tg
+       JOIN lessons l ON l.id = tg.lesson_id
+       WHERE tg.student_id = $1`,
       [studentId],
     );
     return result.rows.map(r => new Grade(r.student_id, r.subject_id, r.value, r.type, r.date));
@@ -46,7 +49,10 @@ export class PostgresStudentReadRepository implements StudentReadRepository {
 
   async findAttendanceByStudentId(studentId: string): Promise<Attendance[]> {
     const result = await this.pool.query(
-      'SELECT student_id, subject_id, date, status FROM attendance WHERE student_id = $1',
+      `SELECT ta.student_id, l.subject_id, l.date, ta.status
+       FROM teacher_attendance ta
+       JOIN lessons l ON l.id = ta.lesson_id
+       WHERE ta.student_id = $1`,
       [studentId],
     );
     return result.rows.map(r => new Attendance(r.student_id, r.subject_id, r.date, r.status));

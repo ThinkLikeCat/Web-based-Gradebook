@@ -1,16 +1,14 @@
 -- Seed data (mirrors InMemoryGradebookRepository seed)
 
 -- Password hashes (bcrypt with cost 10):
---   Student123$ → $2a$10$...
---   Login123$   → $2a$10$...
--- We pre-compute these since bcrypt is slow in SQL
--- To generate: node -e "console.log(require('bcryptjs').hashSync('Student123$', 10))"
+-- Generated: node -e "console.log(require('bcryptjs').hashSync('Student123$', 10))"
+-- Generated: node -e "console.log(require('bcryptjs').hashSync('Login123$', 10))"
 
 INSERT INTO users (id, role, full_name, password_hash, last_name, birth_date, group_id, email, student_id)
 VALUES
-  (1, 'STUDENT', 'Вольфович Арсений', '$2a$10$dummyhashstudent', 'Вольфович', '2007-11-08', 'group-1', NULL, 'student-001'),
-  (2, 'TEACHER', 'Вольфович Александр', '$2a$10$dummyhashteacher', 'Вольфович', NULL, NULL, 'teacher@mail.com', NULL)
-ON CONFLICT (id) DO NOTHING;
+  (1, 'STUDENT', 'Вольфович Арсений', '$2b$10$8CJn4Tl6XgcuxGFd5KVCAOBZi40lsszDtbZO12pym5wbGpxCNw66a', 'Вольфович', '2007-11-08', 'group-1', NULL, 'student-001'),
+  (2, 'TEACHER', 'Вольфович Александр', '$2b$10$7ThUzqWiSCleOCqr.WCqQeZL4DPOxlGN6w.hsbdyeu/LqT4AMy9bW', 'Вольфович', NULL, NULL, 'teacher@mail.com', NULL)
+ON CONFLICT (id) DO UPDATE SET password_hash = EXCLUDED.password_hash;
 
 INSERT INTO groups_info (id, name)
 VALUES
