@@ -84,6 +84,7 @@ button {
   border: 1px solid rgba(255, 255, 255, 0.7);
   background: rgba(255, 255, 255, 0.82);
   box-shadow: 0 28px 70px rgba(16, 93, 144, 0.2);
+  animation: auth-enter 360ms ease both;
 }
 
 .login-main,
@@ -234,21 +235,168 @@ select:focus {
 .shell {
   min-height: 100vh;
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  padding: 18px 24px 28px;
+  gap: 20px;
+  animation: shell-enter 280ms ease both;
+}
+
+.shell--classic {
   grid-template-columns: 288px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   padding: 28px;
   gap: 28px;
 }
 
 .shell--journal {
+  padding: 18px 24px 28px;
+  gap: 20px;
+}
+
+.shell--classic.shell--journal {
   grid-template-columns: 288px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   padding: 28px;
   gap: 28px;
 }
 
-.sidebar {
+.shell--modern.shell--journal .workspace {
+  padding-bottom: 92px;
+}
+
+.app-header {
   position: sticky;
-  top: 28px;
-  height: calc(100vh - 56px);
+  top: 16px;
+  z-index: 24;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  min-height: 58px;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 8px 12px;
+  box-shadow: 0 18px 38px rgba(50, 92, 125, 0.14);
+  backdrop-filter: blur(16px);
+}
+
+.menu-button,
+.drawer-close {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 12px;
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 10px 22px var(--accent-shadow);
+}
+
+.header-brand {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+  color: #1d2939;
+  font-size: 1.18rem;
+  font-weight: 900;
+}
+
+.header-brand svg {
+  flex: 0 0 auto;
+  color: var(--accent);
+}
+
+.header-profile {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-width: 280px;
+  justify-content: flex-end;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 7px 14px 7px 9px;
+}
+
+.header-profile > div:last-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  justify-items: start;
+}
+
+.header-profile strong,
+.header-profile small {
+  display: block;
+  text-align: left;
+}
+
+.header-profile strong {
+  color: #1d2939;
+  font-size: clamp(0.88rem, 1.45vw, 1.04rem);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.header-profile small {
+  color: #667085;
+  font-size: clamp(0.76rem, 0.95vw, 0.86rem);
+  font-weight: 800;
+}
+
+.header-avatar {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 29;
+  pointer-events: none;
+  background: rgba(15, 23, 42, 0);
+  transition: background 180ms ease;
+}
+
+.drawer-backdrop.open {
+  pointer-events: auto;
+  background: rgba(15, 23, 42, 0.34);
+}
+
+.drawer {
+  position: fixed;
+  z-index: 30;
+  top: 18px;
+  left: 18px;
+  bottom: 18px;
+  width: min(312px, calc(100vw - 36px));
+  transform: translateX(calc(-100% - 28px));
+  transition: transform 180ms ease;
+}
+
+.drawer.open {
+  transform: translateX(0);
+}
+
+.drawer-close {
+  position: absolute;
+  z-index: 2;
+  top: 18px;
+  right: 18px;
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: none;
+}
+
+.sidebar {
+  height: 100%;
   display: flex;
   flex-direction: column;
   padding: 36px 30px;
@@ -256,6 +404,12 @@ select:focus {
   background: linear-gradient(180deg, var(--accent) 0%, var(--accent-2) 100%);
   color: white;
   box-shadow: 0 24px 55px var(--accent-shadow);
+}
+
+.shell--classic .sidebar {
+  position: sticky;
+  top: 28px;
+  height: calc(100vh - 56px);
 }
 
 .brand {
@@ -337,6 +491,13 @@ select:focus {
 
 .workspace {
   min-width: 0;
+  width: 100%;
+  max-width: none;
+  padding: 0;
+  animation: page-enter 260ms ease both;
+}
+
+.shell--classic .workspace {
   padding: 8px 0;
 }
 
@@ -716,6 +877,12 @@ select:focus {
   max-width: 760px;
 }
 
+.settings-panel h2 {
+  margin: 0 0 16px;
+  color: #1d2939;
+  font-size: 1.08rem;
+}
+
 .theme-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -768,13 +935,56 @@ select:focus {
   box-shadow: 0 0 0 4px var(--accent-shadow);
 }
 
+.layout-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.layout-option {
+  display: grid;
+  gap: 8px;
+  min-height: 118px;
+  border: 1px solid #d0d5dd;
+  border-radius: 14px;
+  background: #fff;
+  color: #344054;
+  padding: 18px;
+  text-align: left;
+}
+
+.layout-option strong,
+.layout-option span {
+  display: block;
+}
+
+.layout-option strong {
+  font-size: 1rem;
+  color: #1d2939;
+}
+
+.layout-option span {
+  color: #667085;
+  line-height: 1.4;
+}
+
+.layout-option.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-shadow);
+}
+
+.layout-option.active strong {
+  color: var(--accent);
+}
+
 .teacher-journal-page {
   min-width: 0;
 }
 
 .teacher-context {
   position: sticky;
-  top: 16px;
+  top: 104px;
   z-index: 20;
   display: flex;
   justify-content: space-between;
@@ -837,34 +1047,37 @@ select:focus {
   align-items: center;
 }
 
-.tabs {
-  display: flex;
-  gap: 8px;
-  padding: 5px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.75);
+.journal-filters {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.2fr) minmax(150px, 0.75fr) minmax(180px, 0.8fr) minmax(190px, 0.8fr);
+  gap: 12px;
+  margin: 0 0 12px;
+  border: 1px solid #d9e8f3;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.86);
+  padding: 12px;
+  box-shadow: 0 10px 24px rgba(50, 92, 125, 0.08);
 }
 
-.tabs button {
-  min-height: 38px;
-  border: 0;
-  border-radius: 9px;
-  background: transparent;
+.journal-filters label {
+  gap: 5px;
+  min-width: 0;
   color: #667085;
-  padding: 0 16px;
-  font-weight: 900;
+  font-size: 0.78rem;
 }
 
-.tabs button.active {
-  background: var(--accent);
-  color: white;
+.journal-filters input,
+.journal-filters select {
+  min-height: 38px;
+  border-radius: 10px;
+  font-weight: 800;
 }
 
 .journal-wrap {
   overflow: auto;
   width: 100%;
   max-width: none;
-  min-height: calc(100vh - 190px);
+  min-height: calc(100vh - 250px);
   border: 1px solid #c9d8e3;
   border-radius: 14px;
   background: #f8fbfd;
@@ -875,10 +1088,14 @@ select:focus {
   border-collapse: separate;
   border-spacing: 0;
   min-width: 1520px;
-  min-height: calc(100vh - 190px);
+  min-height: calc(100vh - 250px);
   width: max-content;
   color: #475467;
   font-size: 0.8rem;
+}
+
+.teacher-journal-page .journal-table {
+  min-width: 2504px;
 }
 
 .journal-table th,
@@ -970,6 +1187,39 @@ select:focus {
 
 .journal-table thead .average-col {
   z-index: 8;
+}
+
+.journal-table .summary-head {
+  position: sticky;
+  right: 0;
+  z-index: 8;
+  min-width: 116px;
+  background: #ffffff;
+  color: var(--accent);
+  box-shadow: -8px 0 14px rgba(15, 23, 42, 0.04);
+}
+
+.journal-table .summary-col {
+  position: sticky;
+  z-index: 4;
+  width: 58px;
+  min-width: 58px;
+  background: #ffffff;
+  color: var(--accent);
+  font-weight: 900;
+  box-shadow: -8px 0 14px rgba(15, 23, 42, 0.04);
+}
+
+.journal-table thead .summary-col {
+  z-index: 8;
+}
+
+.journal-table .summary-col--secondary {
+  right: 58px;
+}
+
+.journal-table .summary-col--last {
+  right: 0;
 }
 
 .journal-table tbody td {
@@ -1104,6 +1354,18 @@ select:focus {
   color: #d92d20;
 }
 
+.journal-table .summary-col.danger-average {
+  color: #d92d20;
+}
+
+.journal-empty {
+  height: 96px !important;
+  background: #ffffff !important;
+  color: #667085 !important;
+  font-weight: 900;
+  text-align: center !important;
+}
+
 .month-head {
   height: 26px;
   text-transform: uppercase;
@@ -1177,15 +1439,68 @@ select:focus {
   color: #344054;
 }
 
-@media (max-width: 980px) {
-  .shell,
-  .dashboard-grid {
-    grid-template-columns: 1fr;
+@keyframes auth-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
   }
 
-  .sidebar {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes shell-enter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+@media (max-width: 980px) {
+  .shell--classic,
+  .shell--classic.shell--journal {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+    padding: 18px;
+    gap: 18px;
+  }
+
+  .shell--classic .sidebar {
     position: static;
     height: auto;
+    min-height: 0;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
   }
 
   .journal-wrap {
@@ -1195,12 +1510,62 @@ select:focus {
   .deadline-list,
   .select-grid,
   .schedule-editor-grid,
-  .stat-grid {
+  .stat-grid,
+  .layout-grid {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 680px) {
+  .shell,
+  .shell--journal,
+  .shell--classic,
+  .shell--classic.shell--journal {
+    padding: 12px;
+    gap: 14px;
+  }
+
+  .app-header {
+    top: 10px;
+    grid-template-columns: auto minmax(0, 1fr);
+    min-height: 56px;
+    padding: 8px;
+    border-radius: 16px;
+  }
+
+  .header-brand span {
+    font-size: 1rem;
+  }
+
+  .header-profile {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    min-width: 0;
+    padding: 8px 12px;
+    border-radius: 18px;
+  }
+
+  .header-profile strong,
+  .header-profile small {
+    text-align: left;
+  }
+
+  .header-profile > div:last-child {
+    justify-items: start;
+  }
+
+  .header-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .drawer {
+    top: 12px;
+    left: 12px;
+    bottom: 12px;
+    width: min(312px, calc(100vw - 24px));
+  }
+
   .login-card {
     grid-template-columns: 1fr;
   }
@@ -1210,11 +1575,6 @@ select:focus {
   .panel {
     padding: 22px;
   }
-
-  .shell {
-    padding: 14px;
-  }
-
   .page-head,
   .journal-head,
   .teacher-schedule-form,
