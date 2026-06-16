@@ -89,6 +89,7 @@ export function App() {
             </div>
           </header>
 
+<<<<<<< HEAD
           <div className={menuOpen ? 'drawer-backdrop open' : 'drawer-backdrop'} onClick={() => setMenuOpen(false)} />
           <div className={menuOpen ? 'drawer open' : 'drawer'} aria-hidden={!menuOpen}>
             <button className="drawer-close" type="button" onClick={() => setMenuOpen(false)} aria-label="Закрыть меню">
@@ -125,6 +126,10 @@ export function App() {
 
       <main className="workspace" key={`${activePage}-${layoutMode}-${user.role}`}>
         {(activePage === 'dashboard' || (activePage === 'schedule' && !isTeacher)) && !isTeacher && (
+=======
+      <main className="workspace">
+        {activePage === 'dashboard' && !isTeacher && (
+>>>>>>> 65d704fa271312697203b62f21fcd17039d6216b
           <Dashboard user={user} plannedWorks={plannedWorks} notifications={notifications.map((notification) => notification.work)} />
         )}
         {activePage === 'journal' && !isTeacher && <Journal role="student" cornerTop="Даты занятий" cornerBottom="Предметы" />}

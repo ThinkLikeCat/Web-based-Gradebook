@@ -4,14 +4,12 @@ import { getDashboardData } from '../../api/schedule';
 import { ErrorState, LoadingState } from '../../components/ui/AsyncState';
 import type { Deadline, Exam, PlannedWork, ScheduleItem, User } from '../../types';
 
-const today = new Date('2026-06-03');
-
 function formatDate(date: string) {
   return new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long' }).format(new Date(date));
 }
 
 function daysLeft(date: string) {
-  const diff = new Date(date).getTime() - today.getTime();
+  const diff = new Date(date).getTime() - Date.now();
   const days = Math.ceil(diff / 86_400_000);
 
   if (days === 0) {
@@ -61,8 +59,8 @@ export function Dashboard({
       <section className="content-column">
         <header className="page-head">
           <div>
-            <span className="eyebrow">Среда</span>
-            <h1>3 июня</h1>
+            <span className="eyebrow">{new Intl.DateTimeFormat('ru-RU', { weekday: 'long' }).format(new Date())}</span>
+            <h1>{new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long' }).format(new Date())}</h1>
             <p>Группа {user.group}. Ближайшие занятия, дедлайны и экзамены.</p>
           </div>
         </header>
@@ -203,22 +201,29 @@ function MiniCalendar({
   plannedWorks: PlannedWork[];
   deadlines: Deadline[];
 }) {
-  const days = Array.from({ length: 30 }, (_, index) => index + 1);
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  const currentDay = now.getDate();
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const days = Array.from({ length: daysInMonth }, (_, index) => index + 1);
   const eventsByDay = new Map<number, string[]>();
 
+  const monthName = new Intl.DateTimeFormat('ru-RU', { month: 'long' }).format(now);
+
   exams.forEach((exam) => {
-    addCalendarEvent(eventsByDay, exam.date, `Экзамен: ${exam.subject}`);
+    addCalendarEvent(eventsByDay, exam.date, `Экзамен: ${exam.subject}`, currentYear, currentMonth);
   });
 
   deadlines.forEach((deadline) => {
-    addCalendarEvent(eventsByDay, deadline.dueDate, `Дедлайн: ${deadline.subject}`);
+    addCalendarEvent(eventsByDay, deadline.dueDate, `Дедлайн: ${deadline.subject}`, currentYear, currentMonth);
   });
 
   plannedWorks.forEach((work) => {
-    addCalendarEvent(eventsByDay, work.date, `${capitalize(getWorkTypeFullLabel(work.type))}: ${work.subject}`);
+    addCalendarEvent(eventsByDay, work.date, `${capitalize(getWorkTypeFullLabel(work.type))}: ${work.subject}`, currentYear, currentMonth);
 
     if (work.type === 'lab' && work.deadline) {
-      addCalendarEvent(eventsByDay, work.deadline, `Дедлайн лабы: ${work.subject} · ${work.title}`);
+      addCalendarEvent(eventsByDay, work.deadline, `Дедлайн лабы: ${work.subject} · ${work.title}`, currentYear, currentMonth);
     }
   });
 
@@ -226,7 +231,7 @@ function MiniCalendar({
     <section className="panel calendar-panel">
       <div className="section-title">
         <CalendarDays size={20} />
-        <h2>Июнь 2026</h2>
+        <h2>{monthName[0].toUpperCase() + monthName.slice(1)} {currentYear}</h2>
       </div>
       <div className="calendar-weekdays">
         {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map((day) => (
@@ -236,7 +241,7 @@ function MiniCalendar({
       <div className="calendar-grid">
         {days.map((day) => {
           const events = eventsByDay.get(day) ?? [];
-          const className = [day === 3 ? 'current' : '', events.length ? 'has-event' : ''].filter(Boolean).join(' ');
+          const className = [day === currentDay ? 'current' : '', events.length ? 'has-event' : ''].filter(Boolean).join(' ');
 
           return (
             <button className={className} data-tooltip={events.join(' · ') || undefined} key={day}>
@@ -253,10 +258,10 @@ function capitalize(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-function addCalendarEvent(eventsByDay: Map<number, string[]>, date: string, label: string) {
+function addCalendarEvent(eventsByDay: Map<number, string[]>, date: string, label: string, currentYear: number, currentMonth: number) {
   const eventDate = new Date(date);
 
-  if (eventDate.getMonth() !== 5 || eventDate.getFullYear() !== 2026) {
+  if (eventDate.getMonth() !== currentMonth || eventDate.getFullYear() !== currentYear) {
     return;
   }
 

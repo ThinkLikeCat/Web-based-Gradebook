@@ -248,6 +248,7 @@ select:focus {
   gap: 28px;
 }
 
+<<<<<<< HEAD
 .shell--journal {
   padding: 18px 24px 28px;
   gap: 20px;
@@ -265,6 +266,9 @@ select:focus {
 }
 
 .app-header {
+=======
+.sidebar {
+>>>>>>> 65d704fa271312697203b62f21fcd17039d6216b
   position: sticky;
   top: 16px;
   z-index: 24;

@@ -420,6 +420,7 @@ function getAverageClass(cells: JournalCell[], subjectId: string, dates: string[
   return '';
 }
 
+<<<<<<< HEAD
 function getFinalMark(cells: JournalCell[], subjectId: string, dates: string[]) {
   const average = Number(getAverage(cells, subjectId, dates));
 
@@ -464,6 +465,8 @@ function matchesFilters(subject: SubjectRow, filterText: string) {
   return true;
 }
 
+=======
+>>>>>>> 65d704fa271312697203b62f21fcd17039d6216b
 function isMonthStart(dates: string[], index: number) {
   if (index === 0) {
     return false;
