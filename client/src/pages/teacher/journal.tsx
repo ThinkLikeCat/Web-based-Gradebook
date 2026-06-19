@@ -1,9 +1,9 @@
+import { Inbox } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Journal } from '../student/journal';
+import { getTeacherGroups, getTeacherJournal } from '../../api/teacher';
+import { SkeletonGrid } from '../../components/ui/AsyncState';
 import type { JournalCell, TeacherChoice } from '../../types';
-import { useMemo, useState } from 'react';
-import { groups, journalDates, studentsByGroup } from '../../data/mockData';
-
-const teacherSubjects = ['Веб-программирование', 'Системы управления БД', 'Компьютерные сети', 'Тестирование ПО'];
 
 export function TeacherJournal({
   choice,
@@ -13,8 +13,74 @@ export function TeacherJournal({
   onChoiceChange: (choice: TeacherChoice) => void;
 }) {
   const [canEdit, setCanEdit] = useState(false);
-  const students = studentsByGroup[choice.group] ?? [];
-  const cells = useMemo(() => createTeacherCells(students, choice.subject), [students, choice.subject]);
+  const [groupInfos, setGroupInfos] = useState<Array<{ groupId: string; groupName: string; subjectId: string; subjectName: string }>>([]);
+  const [students, setStudents] = useState<Array<{ id: string; name: string; shortName: string }>>([]);
+  const [cells, setCells] = useState<JournalCell[]>([]);
+  const [dates, setDates] = useState<string[]>([]);
+  const [dateLessonMap, setDateLessonMap] = useState<Map<string, string>>(new Map());
+  const [loading, setLoading] = useState(true);
+
+  const uniqueGroups = [...new Set(groupInfos.map(g => g.groupName))];
+  const groupSubjectNames = [...new Set(
+    groupInfos
+      .filter(g => g.groupName === choice.group)
+      .map(g => g.subjectName)
+  )];
+
+  useEffect(() => {
+    setLoading(true);
+    getTeacherGroups()
+      .then(data => setGroupInfos(data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (choice.group && !groupSubjectNames.includes(choice.subject)) {
+      const firstSubject = groupSubjectNames[0];
+      if (firstSubject && firstSubject !== choice.subject) {
+        onChoiceChange({ ...choice, subject: firstSubject });
+        return;
+      }
+    }
+
+    const info = groupInfos.find(g => g.groupName === choice.group && g.subjectName === choice.subject);
+    if (!info) return;
+
+    getTeacherJournal(info.groupId, info.subjectId)
+      .then(data => {
+        setStudents(data.students);
+        setCells(data.cells);
+        setDates(data.dates);
+        setDateLessonMap(data.dateLessonMap);
+      })
+      .catch(() => {});
+  }, [choice.group, choice.subject, groupInfos]);
+
+  if (loading) {
+    return (
+      <div className="teacher-journal-page">
+        <header className="page-head">
+          <div>
+            <span className="eyebrow">Журнал</span>
+            <h1>Электронный журнал</h1>
+          </div>
+        </header>
+        <SkeletonGrid count={3} />
+      </div>
+    );
+  }
+
+  if (groupInfos.length === 0) {
+    return (
+      <div className="teacher-journal-page">
+        <div className="async-state" style={{ minHeight: 260 }}>
+          <Inbox size={32} />
+          Нет доступных журналов
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="teacher-journal-page">
@@ -23,7 +89,7 @@ export function TeacherJournal({
           <label>
             Группа
             <select value={choice.group} onChange={(event) => onChoiceChange({ ...choice, group: event.target.value })}>
-              {groups.map((group) => (
+              {uniqueGroups.map((group) => (
                 <option key={group}>{group}</option>
               ))}
             </select>
@@ -31,7 +97,7 @@ export function TeacherJournal({
           <label>
             Предмет
             <select value={choice.subject} onChange={(event) => onChoiceChange({ ...choice, subject: event.target.value })}>
-              {teacherSubjects.map((subject) => (
+              {groupSubjectNames.map((subject) => (
                 <option key={subject}>{subject}</option>
               ))}
             </select>
@@ -46,42 +112,12 @@ export function TeacherJournal({
         canEdit={canEdit}
         rows={students}
         cells={cells}
+        dates={dates}
+        dateLessonMap={dateLessonMap}
         leftHeader="ФИО ученика"
         cornerTop="Даты занятий"
         cornerBottom="ФИО ученика"
       />
     </div>
-  );
-}
-
-function createTeacherCells(students: Array<{ id: string }>, subject: string): JournalCell[] {
-  const subjectShift = subject.length % 6;
-
-  return students.flatMap((student, studentIndex) =>
-    journalDates.flatMap<JournalCell>((date, dateIndex) => {
-      const marker = (studentIndex * 3 + dateIndex + subjectShift) % 17;
-
-      if (marker === 1) {
-        return [{ subjectId: student.id, date, marks: ['8'], absences: [] }];
-      }
-
-      if (marker === 4) {
-        return [{ subjectId: student.id, date, marks: ['6', 'зч'], absences: [] }];
-      }
-
-      if (marker === 7) {
-        return [{ subjectId: student.id, date, marks: ['9'], absences: [] }];
-      }
-
-      if (marker === 10) {
-        return [{ subjectId: student.id, date, marks: [], absences: ['Н'] }];
-      }
-
-      if (marker === 14) {
-        return [{ subjectId: student.id, date, marks: [], absences: ['ОП:15'] }];
-      }
-
-      return [];
-    }),
   );
 }

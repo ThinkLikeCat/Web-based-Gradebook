@@ -1,0 +1,182 @@
+import { StudentUseCase } from '../ports/in/student.usecase';
+import { StudentReadRepository } from '../../domain/repositories/StudentReadRepository';
+import { NotFoundError } from '../../domain/errors/NotFoundError';
+import { StudentScheduleDto } from '../dtos/student-schedule.dto';
+import { StudentJournalDto } from '../dtos/student-journal.dto';
+import { StudentSubjectProgressDto } from '../dtos/student-subject.dto';
+import { StudentLabDetailDto } from '../dtos/student-lab.dto';
+import { generateDateStrings } from '../utils/generateLessons';
+
+export class StudentUseCaseImpl implements StudentUseCase {
+  constructor(private readonly repository: StudentReadRepository) {}
+
+  async getSchedule(studentId: string): Promise<StudentScheduleDto> {
+    const student = await this.repository.findStudentById(studentId);
+    if (!student) {
+      throw new NotFoundError('Student not found');
+    }
+
+    const scheduleEntries = await this.repository.findScheduleByStudentId(studentId);
+    return {
+      studentId: student.id.value,
+      studentName: student.name,
+      schedule: scheduleEntries.flatMap(({ course }) =>
+        course.schedule.map((item) => ({
+          subjectId: course.id.value,
+          subjectName: course.name,
+          teacherName: course.teacherName,
+          day: item.day,
+          time: item.time,
+          room: item.room,
+        })),
+      ),
+    };
+  }
+
+  async getJournal(studentId: string): Promise<StudentJournalDto> {
+    const student = await this.repository.findStudentById(studentId);
+    if (!student) {
+      throw new NotFoundError('Student not found');
+    }
+
+    const grades = await this.repository.findGradesByStudentId(studentId);
+    const attendance = await this.repository.findAttendanceByStudentId(studentId);
+
+    const allSubjectIds = [...new Set([...grades.map(g => g.subjectId), ...attendance.map(a => a.subjectId)])];
+    const courses = await this.repository.findCoursesByIds(allSubjectIds);
+    const courseMap = new Map(courses.map(c => [c.id.value, c.name]));
+
+    const scheduleEntries = await this.repository.findScheduleByStudentId(studentId);
+
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + 2, 0);
+
+    const dateSet = new Set<string>();
+
+    for (const { course } of scheduleEntries) {
+      const scheduleDates = generateDateStrings(course.schedule, start, end);
+      for (const d of scheduleDates) {
+        dateSet.add(d);
+      }
+    }
+
+    for (const g of grades) {
+      dateSet.add(g.date);
+    }
+
+    for (const a of attendance) {
+      dateSet.add(a.date);
+    }
+
+    const dates = [...dateSet].sort();
+
+    const gradeRows = grades.map((grade) => ({
+      subjectId: grade.subjectId,
+      subjectName: courseMap.get(grade.subjectId) ?? 'Неизвестный предмет',
+      type: grade.type,
+      value: grade.value,
+      date: grade.date,
+    }));
+
+    const attendanceRows = attendance.map((record) => ({
+      subjectId: record.subjectId,
+      subjectName: courseMap.get(record.subjectId) ?? 'Неизвестный предмет',
+      date: record.date,
+      status: record.status,
+    }));
+
+    return {
+      studentId: student.id.value,
+      studentName: student.name,
+      grades: gradeRows,
+      attendance: attendanceRows,
+      dates,
+    };
+  }
+
+  async getSubjectProgress(studentId: string, subjectId: string): Promise<StudentSubjectProgressDto> {
+    const student = await this.repository.findStudentById(studentId);
+    if (!student) {
+      throw new NotFoundError('Student not found');
+    }
+
+    const course = await this.repository.findCourseById(subjectId);
+    if (!course) {
+      throw new NotFoundError('Subject not found');
+    }
+
+    const grades = (await this.repository.findGradesByStudentId(studentId)).filter((grade) => grade.subjectId === subjectId);
+    const attendance = (await this.repository.findAttendanceByStudentId(studentId)).filter(
+      (record) => record.subjectId === subjectId,
+    );
+
+    const averageScore = grades.length > 0 ? Math.round(grades.reduce((sum, grade) => sum + grade.value, 0) / grades.length) : 0;
+    const attendanceStats = attendance.reduce(
+      (acc, record) => {
+        acc[record.status] = (acc[record.status] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
+    return {
+      studentId: student.id.value,
+      studentName: student.name,
+      subjectId: course.id.value,
+      subjectName: course.name,
+      grades: grades.map((grade) => ({ type: grade.type, value: grade.value, date: grade.date })),
+      attendance: attendance.map((record) => ({ date: record.date, status: record.status })),
+      summary: `Средний балл ${averageScore}. Посещаемость: present=${attendanceStats.PRESENT ?? 0}, absent=${attendanceStats.ABSENT ?? 0}, late=${attendanceStats.LATE ?? 0}.`,
+    };
+  }
+
+  async getLabDetails(studentId: string, labId: string): Promise<StudentLabDetailDto> {
+    const student = await this.repository.findStudentById(studentId);
+    if (!student) {
+      throw new NotFoundError('Student not found');
+    }
+
+    const lab = await this.repository.findLabWorkById(labId);
+    if (!lab) {
+      throw new NotFoundError('Lab not found');
+    }
+
+    const submission = await this.repository.findLabSubmission(studentId, labId);
+    if (!submission) {
+      return {
+        studentId: student.id.value,
+        studentName: student.name,
+        labId: lab.id.value,
+        subjectId: lab.subjectId,
+        title: lab.title,
+        issueDate: lab.issueDate,
+        dueDate: lab.dueDate,
+        teamWork: lab.teamWork,
+        theoryMaterials: lab.theoryMaterials,
+        partners: lab.partners,
+        submissionStatus: 'pending',
+        fileUrl: '',
+        teacherComment: '',
+        teacherGrade: null,
+      };
+    }
+
+    return {
+      studentId: student.id.value,
+      studentName: student.name,
+      labId: lab.id.value,
+      subjectId: lab.subjectId,
+      title: lab.title,
+      issueDate: lab.issueDate,
+      dueDate: lab.dueDate,
+      teamWork: lab.teamWork,
+      theoryMaterials: lab.theoryMaterials,
+      partners: lab.partners,
+      submissionStatus: submission.status,
+      fileUrl: submission.fileUrl,
+      teacherComment: submission.teacherComment,
+      teacherGrade: submission.teacherGrade,
+    };
+  }
+}

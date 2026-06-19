@@ -1,15 +1,30 @@
-import { journalCells, journalDates, subjects } from '../data/mockData';
-import type { JournalCell, JournalMode } from '../types';
+import type { JournalCell, JournalMode, SubjectRow } from '../types';
 import { apiRequest } from './client';
+import { getStudentJournal } from './student';
 
-export async function getJournalData() {
-  return apiRequest('/journal', {
-    mock: () => ({
-      dates: journalDates,
-      subjects,
-      cells: journalCells,
-    }),
-  });
+type JournalData = {
+  dates: string[];
+  subjects: SubjectRow[];
+  cells: JournalCell[];
+};
+
+function getStoredStudentId(): string {
+  try {
+    const raw = sessionStorage.getItem('gradebook_user');
+    if (!raw) return '';
+    return JSON.parse(raw).studentId || '';
+  } catch {
+    return '';
+  }
+}
+
+export async function getJournalData(): Promise<JournalData> {
+  const studentId = getStoredStudentId();
+  if (!studentId) {
+    return { dates: [], subjects: [], cells: [] };
+  }
+
+  return getStudentJournal(studentId);
 }
 
 export function validateCellValue(mode: JournalMode, rawValue: string): string[] {
@@ -22,9 +37,14 @@ export function validateCellValue(mode: JournalMode, rawValue: string): string[]
   const parts = normalized.split('/').map((part) => part.trim()).filter(Boolean);
 
   if (mode === 'marks') {
-    const isValidMark = (part: string) => part === 'ЗЧ' || /^\d{1,2}$/.test(part);
+    const isValidMark = (part: string) => {
+      if (part === 'ЗЧ') return true;
+      if (!/^\d{1,2}$/.test(part)) return false;
+      const num = Number(part);
+      return num >= 1 && num <= 10;
+    };
     if (!parts.every(isValidMark)) {
-      throw new Error('Для оценок можно вводить числа, ЗЧ и дробь через /');
+      throw new Error('Оценки должны быть от 1 до 10, ЗЧ или дробь через /');
     }
   }
 

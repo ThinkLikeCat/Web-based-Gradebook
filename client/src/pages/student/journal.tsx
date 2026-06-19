@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getJournalData, updateJournalCell, validateCellValue } from '../../api/journal';
-import type { JournalCell, JournalMode, Role, Semester, SubjectRow } from '../../types';
-import { createSemesterDateFilter } from '../../utils/semester';
+import { saveGrade, saveAttendance } from '../../api/teacher';
+import type { JournalCell, JournalMode, Role, SubjectRow } from '../../types';
 
 type JournalData = {
   dates: string[];
@@ -9,26 +9,15 @@ type JournalData = {
   cells: JournalCell[];
 };
 
-const monthNames = [
-  'январь',
-  'февраль',
-  'март',
-  'апрель',
-  'май',
-  'июнь',
-  'июль',
-  'август',
-  'сентябрь',
-  'октябрь',
-  'ноябрь',
-  'декабрь',
-];
+const monthNames = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
 
 export function Journal({
   role,
   canEdit = false,
   rows,
   cells,
+  dates: propDates,
+  dateLessonMap,
   leftHeader = 'Предмет',
   cornerTop,
   cornerBottom = 'Даты занятий',
@@ -37,6 +26,8 @@ export function Journal({
   canEdit?: boolean;
   rows?: SubjectRow[];
   cells?: JournalCell[];
+  dates?: string[];
+  dateLessonMap?: Map<string, string>;
   leftHeader?: string;
   cornerTop?: string;
   cornerBottom?: string;
@@ -52,6 +43,10 @@ export function Journal({
   const dateFilter = useMemo(() => createSemesterDateFilter(semester), [semester]);
 
   useEffect(() => {
+    if (propDates && rows && cells) {
+      setData({ dates: propDates, subjects: rows, cells });
+      return;
+    }
     getJournalData().then((journalData) => {
       const visibleDates = dateFilter ? journalData.dates.filter(dateFilter) : journalData.dates;
       const visibleDateSet = new Set(visibleDates);
@@ -62,7 +57,7 @@ export function Journal({
         cells: (cells ?? journalData.cells).filter((cell) => visibleDateSet.has(cell.date)),
       });
     });
-  }, [rows, cells, dateFilter]);
+  }, [rows, cells, propDates]);
 
   const monthOptions = useMemo(() => getMonthOptions(data.dates), [data.dates]);
   const filteredDates = useMemo(
@@ -96,7 +91,7 @@ export function Journal({
     return getVisibleValues(findCell(subjectId, date), mode);
   }
 
-  function saveCell() {
+  async function saveCell() {
     if (!editing) {
       return;
     }
@@ -104,6 +99,21 @@ export function Journal({
     try {
       const rawValue = mode === 'absences' && editing.value.includes('ОП') ? applyLateMinutes(editing.value, editing.lateMinutes) : editing.value;
       const values = validateCellValue(mode, rawValue);
+      const firstValue = values[0];
+      const lessonId = dateLessonMap?.get(editing.date);
+
+      if (role === 'teacher' && lessonId && firstValue) {
+        if (mode === 'marks') {
+          const num = parseInt(firstValue, 10);
+          if (Number.isFinite(num)) {
+            await saveGrade(editing.subjectId, lessonId, num, 'PRACTICAL');
+          }
+        } else {
+          const status = firstValue.startsWith('ОП') ? 'LATE' : 'ABSENT';
+          await saveAttendance(editing.subjectId, lessonId, status);
+        }
+      }
+
       setData((current) => ({
         ...current,
         cells: updateJournalCell(current.cells, editing.subjectId, editing.date, mode, values),
@@ -115,9 +125,19 @@ export function Journal({
     }
   }
 
-  function quickSet(subjectId: string, date: string, nextMode: JournalMode, value: string) {
+  async function quickSet(subjectId: string, date: string, nextMode: JournalMode, value: string) {
     if (role !== 'teacher' || !canEdit) {
       return;
+    }
+
+    const lessonId = dateLessonMap?.get(date);
+    if (lessonId) {
+      try {
+        const status = value.startsWith('ОП') ? 'LATE' : 'ABSENT';
+        await saveAttendance(subjectId, lessonId, status);
+      } catch {
+        return;
+      }
     }
 
     setData((current) => ({
@@ -420,53 +440,6 @@ function getAverageClass(cells: JournalCell[], subjectId: string, dates: string[
   return '';
 }
 
-<<<<<<< HEAD
-function getFinalMark(cells: JournalCell[], subjectId: string, dates: string[]) {
-  const average = Number(getAverage(cells, subjectId, dates));
-
-  if (!Number.isFinite(average)) {
-    return '';
-  }
-
-  return String(Math.round(average));
-}
-
-function getFinalMarkClass(cells: JournalCell[], subjectId: string, dates: string[]) {
-  const finalMark = Number(getFinalMark(cells, subjectId, dates));
-
-  if (Number.isFinite(finalMark) && finalMark < 3) {
-    return 'danger-average';
-  }
-
-  return '';
-}
-
-function getAbsenceCount(cells: JournalCell[], subjectId: string, dates: string[]) {
-  const count = getRowCells(cells, subjectId, dates).flatMap((cell) => cell.absences).filter((absence) => absence.includes('Н')).length;
-  return count || '';
-}
-
-function getLateCount(cells: JournalCell[], subjectId: string, dates: string[]) {
-  const count = getRowCells(cells, subjectId, dates).flatMap((cell) => cell.absences).filter((absence) => absence.startsWith('ОП')).length;
-  return count || '';
-}
-
-function matchesFilters(subject: SubjectRow, filterText: string) {
-  const normalizedFilterText = filterText.trim().toLowerCase();
-
-  if (
-    normalizedFilterText &&
-    !subject.name.toLowerCase().includes(normalizedFilterText) &&
-    !subject.shortName.toLowerCase().includes(normalizedFilterText)
-  ) {
-    return false;
-  }
-
-  return true;
-}
-
-=======
->>>>>>> 65d704fa271312697203b62f21fcd17039d6216b
 function isMonthStart(dates: string[], index: number) {
   if (index === 0) {
     return false;

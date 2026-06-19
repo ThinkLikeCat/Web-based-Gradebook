@@ -1,7 +1,9 @@
-import { GraduationCap, Menu, UserRound, X } from 'lucide-react';
+import { Eye, EyeOff, GraduationCap } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { loginStudent, loginTeacher } from './api/auth';
+import { loginStudent, loginTeacher, logoutUser } from './api/auth';
+import { getTokens } from './api/client';
 import { Sidebar } from './components/layout/Sidebar';
+import { ToastContainer } from './components/ui/Toast';
 import { groups } from './data/mockData';
 import { useHashRoute } from './hooks/useHashRoute';
 import { Dashboard } from './pages/student/dashboard';
@@ -18,7 +20,10 @@ type WorkNotification = {
 };
 
 export function App() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const stored = sessionStorage.getItem('gradebook_user');
+    return stored ? JSON.parse(stored) : null;
+  });
   const [activePage, setActivePage] = useHashRoute();
   const [theme, setTheme] = useState<ThemeColor>('blue');
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('modern');
@@ -67,69 +72,21 @@ export function App() {
   const isTeacher = user.role === 'teacher';
 
   return (
-    <div className={`shell shell--${layoutMode} ${activePage === 'journal' ? 'shell--journal' : ''}`} data-theme={theme}>
-      {layoutMode === 'modern' ? (
-        <>
-          <header className="app-header">
-            <button className="menu-button" type="button" onClick={() => setMenuOpen(true)} aria-label="Открыть меню">
-              <Menu size={24} />
-            </button>
-            <div className="header-brand">
-              <GraduationCap size={25} />
-              <span>Электронный журнал</span>
-            </div>
-            <div className="header-profile">
-              <div className="header-avatar">
-                <UserRound size={18} />
-              </div>
-              <div>
-                <strong>{user.fullName}</strong>
-                <small>{isTeacher ? 'Преподаватель' : user.group}</small>
-              </div>
-            </div>
-          </header>
+    <div className={`shell ${activePage === 'journal' ? 'shell--journal' : ''}`} data-theme={theme}>
+      <Sidebar
+        user={user}
+        activePage={activePage}
+        onNavigate={setActivePage}
+        onLogout={() => {
+          logoutUser();
+          sessionStorage.removeItem('gradebook_user');
+          setUser(null);
+          setActivePage('dashboard');
+        }}
+      />
 
-<<<<<<< HEAD
-          <div className={menuOpen ? 'drawer-backdrop open' : 'drawer-backdrop'} onClick={() => setMenuOpen(false)} />
-          <div className={menuOpen ? 'drawer open' : 'drawer'} aria-hidden={!menuOpen}>
-            <button className="drawer-close" type="button" onClick={() => setMenuOpen(false)} aria-label="Закрыть меню">
-              <X size={22} />
-            </button>
-            <Sidebar
-              user={user}
-              activePage={activePage}
-              onNavigate={(page) => {
-                setActivePage(page);
-                setMenuOpen(false);
-              }}
-              onLogout={() => {
-                setMenuOpen(false);
-                setUser(null);
-                setActivePage('dashboard');
-              }}
-            />
-          </div>
-        </>
-      ) : (
-        <Sidebar
-          user={user}
-          activePage={activePage}
-          onNavigate={(page) => {
-            setActivePage(page);
-          }}
-          onLogout={() => {
-            setUser(null);
-            setActivePage('dashboard');
-          }}
-        />
-      )}
-
-      <main className="workspace" key={`${activePage}-${layoutMode}-${user.role}`}>
-        {(activePage === 'dashboard' || (activePage === 'schedule' && !isTeacher)) && !isTeacher && (
-=======
       <main className="workspace">
         {activePage === 'dashboard' && !isTeacher && (
->>>>>>> 65d704fa271312697203b62f21fcd17039d6216b
           <Dashboard user={user} plannedWorks={plannedWorks} notifications={notifications.map((notification) => notification.work)} />
         )}
         {activePage === 'journal' && !isTeacher && <Journal role="student" cornerTop="Даты занятий" cornerBottom="Предметы" />}
@@ -159,6 +116,8 @@ export function App() {
           />
         )}
       </main>
+
+      <ToastContainer notifications={notifications.map(n => n.work)} />
     </div>
   );
 }
@@ -166,9 +125,11 @@ export function App() {
 function LoginScreen({ onLogin }: { onLogin: (user: User) => void }) {
   const [role, setRole] = useState<Role>('student');
   const [lastName, setLastName] = useState('');
+  const [firstName, setFirstName] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [group, setGroup] = useState('Т-394');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -180,9 +141,10 @@ function LoginScreen({ onLogin }: { onLogin: (user: User) => void }) {
     try {
       const nextUser =
         role === 'student'
-          ? await loginStudent({ lastName, birthDate, group })
-          : await loginTeacher({ lastName, password });
+          ? await loginStudent({ lastName, firstName, birthDate, group, password })
+          : await loginTeacher({ lastName, firstName, password });
 
+      sessionStorage.setItem('gradebook_user', JSON.stringify(nextUser));
       window.location.hash = '/dashboard';
       onLogin(nextUser);
     } catch (loginError) {
@@ -207,7 +169,12 @@ function LoginScreen({ onLogin }: { onLogin: (user: User) => void }) {
           <form onSubmit={handleSubmit} className="login-form">
             <label>
               Фамилия
-              <input value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder="Например: Иванов" />
+              <input value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder="Например: Иванов" autoFocus />
+            </label>
+
+            <label>
+              Имя
+              <input value={firstName} onChange={(event) => setFirstName(event.target.value)} placeholder="Например: Иван" />
             </label>
 
             {role === 'student' ? (
@@ -225,22 +192,33 @@ function LoginScreen({ onLogin }: { onLogin: (user: User) => void }) {
                   </select>
                 </label>
               </>
-            ) : (
-              <label>
-                Пароль
+            ) : null}
+
+            <label>
+              Пароль
+              <div className="input-wrap">
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   placeholder="Пароль для входа"
                 />
-              </label>
-            )}
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword((v) => !v)}
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </label>
 
             {error && <p className="form-error">{error}</p>}
 
             <button className="primary-button" type="submit" disabled={loading}>
-              {loading ? 'Проверяем...' : 'Войти'}
+              {loading ? <><span className="spinner" /> Проверяем...</> : 'Войти'}
             </button>
           </form>
         </div>
@@ -250,9 +228,9 @@ function LoginScreen({ onLogin }: { onLogin: (user: User) => void }) {
           <p>
             {role === 'student'
               ? 'Откройте журнал группы и предмета, чтобы выставлять оценки и пропуски.'
-              : 'Вернитесь к входу по фамилии, дате рождения и группе.'}
+              : 'Вернитесь к входу по фамилии, имени и паролю.'}
           </p>
-          <button type="button" onClick={() => setRole(role === 'student' ? 'teacher' : 'student')}>
+          <button type="button" onClick={() => { setRole(role === 'student' ? 'teacher' : 'student'); setError(''); }}>
             {role === 'student' ? 'Войти как преподаватель' : 'Войти как студент'}
           </button>
         </aside>
