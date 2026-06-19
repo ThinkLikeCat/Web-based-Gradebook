@@ -137,3 +137,11 @@ dist
 
 # SvelteKit build / generate output
 .svelte-kit
+
+# Sensitive files
+login_credentials.txt
+*.pem
+*.key
+
+# Docker
+.vite/

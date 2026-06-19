@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import type { Pool } from 'pg';
-import { config } from '../../../config';
 import { closePool, getPool } from './connection';
 
 const MIGRATIONS_TABLE = '_migrations';

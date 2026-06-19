@@ -12,7 +12,7 @@ import { SettingsPage } from './pages/settings/SettingsPage';
 import { TeacherDashboard } from './pages/teacher/dashboard';
 import { TeacherJournal } from './pages/teacher/journal';
 import { TeacherSchedule } from './pages/teacher/schedule';
-import type { LayoutMode, PlannedWork, Role, TeacherChoice, ThemeColor, User } from './types';
+import type { PlannedWork, Role, TeacherChoice, ThemeColor, User } from './types';
 
 type WorkNotification = {
   work: PlannedWork;
@@ -26,9 +26,7 @@ export function App() {
   });
   const [activePage, setActivePage] = useHashRoute();
   const [theme, setTheme] = useState<ThemeColor>('blue');
-  const [layoutMode, setLayoutMode] = useState<LayoutMode>('modern');
   const [teacherChoice, setTeacherChoice] = useState<TeacherChoice>({ group: 'Т-394', subject: 'Веб-программирование' });
-  const [menuOpen, setMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState<WorkNotification[]>([]);
   const [plannedWorks, setPlannedWorks] = useState<PlannedWork[]>([
     {
@@ -37,7 +35,6 @@ export function App() {
       subject: 'Веб-программирование',
       type: 'lab',
       title: 'Лабораторная работа №4',
-      workNumber: '4',
       date: '2026-06-05',
       deadline: '2026-06-12',
       room: '214',
@@ -48,8 +45,7 @@ export function App() {
       group: 'Т-291',
       subject: 'Веб-программирование',
       type: 'required-test',
-      title: 'Обязательная контрольная работа №1',
-      workNumber: '1',
+      title: 'Обязательная контрольная работа',
       date: '2026-06-18',
       room: '214',
       comment: 'Компоненты, состояние и работа с формами',
@@ -104,17 +100,7 @@ export function App() {
             }}
           />
         )}
-        {activePage === 'settings' && (
-          <SettingsPage
-            theme={theme}
-            layoutMode={layoutMode}
-            onThemeChange={setTheme}
-            onLayoutModeChange={(mode) => {
-              setLayoutMode(mode);
-              setMenuOpen(false);
-            }}
-          />
-        )}
+        {activePage === 'settings' && <SettingsPage theme={theme} onThemeChange={setTheme} />}
       </main>
 
       <ToastContainer notifications={notifications.map(n => n.work)} />

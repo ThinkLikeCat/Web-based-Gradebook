@@ -24,10 +24,12 @@ describe('TeacherUseCase', () => {
       findLessonsByGroupAndSubject: jest.fn(),
       findLessonById: jest.fn(),
       createLesson: jest.fn(),
+      findCourseScheduleBySubject: jest.fn(),
       findGradesByGroupAndSubject: jest.fn(),
       saveGrade: jest.fn(),
       findAttendancesByGroupAndSubject: jest.fn(),
       saveAttendance: jest.fn(),
+      findLessonCountByTeacherAndMonth: jest.fn(),
     };
     programRepo = {
       findProgramBySubject: jest.fn(),
@@ -38,6 +40,7 @@ describe('TeacherUseCase', () => {
       findLabSubmissionsByProgram: jest.fn(),
       findLabSubmissionById: jest.fn(),
       updateLabSubmission: jest.fn(),
+      findPendingSubmissionCountByTeacher: jest.fn(),
     };
     useCase = new TeacherUseCaseImpl(accessRepo, journalRepo, programRepo);
   });
@@ -66,6 +69,7 @@ describe('TeacherUseCase', () => {
       journalRepo.findLessonsByGroupAndSubject.mockResolvedValue([
         { id: 'l1', subjectId: 's1', groupId: 'g1', date: '2026-06-01', startTime: '09:00', endTime: '10:30' },
       ]);
+      journalRepo.findCourseScheduleBySubject.mockResolvedValue([]);
       journalRepo.findGradesByGroupAndSubject.mockResolvedValue([
         { studentId: 'st1', lessonId: 'l1', value: 5, type: 'PRACTICAL' },
       ]);

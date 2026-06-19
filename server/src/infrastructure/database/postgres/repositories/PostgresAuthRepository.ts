@@ -36,6 +36,16 @@ export class PostgresAuthRepository implements AuthRepository {
     return new User(r.id, r.role, r.full_name, r.password_hash, r.last_name, r.birth_date, r.group_id, r.email, r.student_id);
   }
 
+  async findStudentByFullNameAndBirthDate(fullName: string, birthDate: string): Promise<User | null> {
+    const result = await this.pool.query(
+      'SELECT id, role, full_name, password_hash, last_name, birth_date, group_id, email, student_id FROM users WHERE LOWER(full_name) = LOWER($1) AND birth_date = $2 AND role = $3',
+      [fullName, birthDate, 'STUDENT'],
+    );
+    if (result.rows.length === 0) return null;
+    const r = result.rows[0];
+    return new User(r.id, r.role, r.full_name, r.password_hash, r.last_name, r.birth_date, r.group_id, r.email, r.student_id);
+  }
+
   async resolveGroupName(groupId: string): Promise<string> {
     const result = await this.pool.query('SELECT name FROM groups_info WHERE id = $1', [groupId]);
     return result.rows[0]?.name || groupId;

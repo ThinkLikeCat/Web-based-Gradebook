@@ -39,7 +39,7 @@ export class TeacherUseCaseImpl implements TeacherUseCase {
     const group = await this.accessRepo.findGroupById(groupId);
     const subject = await this.accessRepo.findSubjectById(subjectId);
     const students = await this.accessRepo.findStudentsByGroup(groupId);
-    let lessons = await this.journalRepo.findLessonsByGroupAndSubject(groupId, subjectId);
+    const lessons = await this.journalRepo.findLessonsByGroupAndSubject(groupId, subjectId);
     const grades = await this.journalRepo.findGradesByGroupAndSubject(groupId, subjectId);
     const attendances = await this.journalRepo.findAttendancesByGroupAndSubject(groupId, subjectId);
 

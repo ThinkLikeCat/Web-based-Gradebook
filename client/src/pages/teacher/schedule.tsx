@@ -13,7 +13,7 @@ export function TeacherSchedule({
 }) {
   const [kind, setKind] = useState<PlannedWork['type']>('lab');
   const [subject, setSubject] = useState(choice.subject);
-  const [workNumber, setWorkNumber] = useState('5');
+  const [labNumber, setLabNumber] = useState('5');
   const [date, setDate] = useState('2026-06-20');
   const [deadline, setDeadline] = useState('2026-06-27');
   const [room, setRoom] = useState('214');
@@ -44,25 +44,6 @@ export function TeacherSchedule({
       return;
     }
 
-    if (!workNumber.trim() || Number(workNumber) < 1) {
-      setError('Введите корректный номер работы');
-      return;
-    }
-
-    const normalizedSubject = normalizeSubject(subject);
-    const normalizedNumber = normalizeNumber(workNumber);
-    const duplicateWork = items.find(
-      (item) =>
-        normalizeSubject(item.subject) === normalizedSubject &&
-        item.type === kind &&
-        normalizeNumber(item.workNumber ?? extractWorkNumber(item.title)) === normalizedNumber,
-    );
-
-    if (duplicateWork) {
-      setError(`${getWorkTypeName(kind)} с номером ${normalizedNumber} уже создана по этому предмету`);
-      return;
-    }
-
     if (kind === 'lab' && (!deadline || new Date(deadline).getTime() < new Date(date).getTime())) {
       setError('Дедлайн лабораторной не может быть раньше даты проведения');
       return;
@@ -70,12 +51,12 @@ export function TeacherSchedule({
 
     const title =
       kind === 'lab'
-        ? `Лабораторная работа №${normalizedNumber}`
+        ? `Лабораторная работа №${labNumber || '1'}`
         : kind === 'required-test'
-          ? `Обязательная контрольная работа №${normalizedNumber}`
+          ? 'Обязательная контрольная работа'
           : kind === 'exam'
-            ? `Экзамен №${normalizedNumber}`
-            : `Контрольная работа №${normalizedNumber}`;
+            ? 'Экзамен'
+            : 'Контрольная работа';
 
     onAddWork({
       id: crypto.randomUUID(),
@@ -83,7 +64,6 @@ export function TeacherSchedule({
       subject: subject.trim() || choice.subject,
       type: kind,
       title,
-      workNumber: normalizedNumber,
       date,
       deadline: kind === 'lab' ? deadline : undefined,
       room: room.trim(),
@@ -127,10 +107,12 @@ export function TeacherSchedule({
               <input value={subject} onChange={(event) => setSubject(event.target.value)} placeholder="Например: Веб-программирование" />
             </label>
 
-            <label>
-              {kind === 'lab' ? 'Номер лабораторной' : 'Номер работы'}
-              <input min="1" type="number" value={workNumber} onChange={(event) => setWorkNumber(event.target.value)} />
-            </label>
+            {kind === 'lab' && (
+              <label>
+                Номер лабораторной
+                <input min="1" type="number" value={labNumber} onChange={(event) => setLabNumber(event.target.value)} />
+              </label>
+            )}
 
             <label>
               Дата проведения
@@ -200,32 +182,4 @@ export function TeacherSchedule({
 
 function formatDate(date: string) {
   return new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long' }).format(new Date(date));
-}
-
-function normalizeSubject(value: string) {
-  return value.trim().toLowerCase();
-}
-
-function normalizeNumber(value: string) {
-  return String(Number(value.trim()));
-}
-
-function extractWorkNumber(title: string) {
-  return title.match(/№\s*(\d+)/)?.[1] ?? '';
-}
-
-function getWorkTypeName(type: PlannedWork['type']) {
-  if (type === 'lab') {
-    return 'Лабораторная работа';
-  }
-
-  if (type === 'required-test') {
-    return 'Обязательная контрольная работа';
-  }
-
-  if (type === 'exam') {
-    return 'Экзамен';
-  }
-
-  return 'Контрольная работа';
 }

@@ -102,7 +102,10 @@ export class AuthUseCaseImpl implements AuthUseCase {
       throw new ValidationError('fullName обязателен');
     }
 
-    const user = await this.authRepository.findUserByFullName(data.fullName);
+    const user = data.birthDate
+      ? await this.authRepository.findStudentByFullNameAndBirthDate(data.fullName, data.birthDate)
+      : await this.authRepository.findUserByFullName(data.fullName);
+
     if (!user) {
       throw new NotFoundError('Неверные данные');
     }

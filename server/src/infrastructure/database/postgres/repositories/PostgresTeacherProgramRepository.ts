@@ -49,7 +49,7 @@ export class PostgresTeacherProgramRepository implements TeacherProgramRepositor
 
   async updateProgramItem(itemId: string, data: Partial<Omit<ProgramItemData, 'id'>>): Promise<void> {
     const sets: string[] = [];
-    const params: any[] = [];
+    const params: (string | number | null | undefined)[] = [];
     let idx = 1;
 
     if (data.subjectId !== undefined) { sets.push(`subject_id = $${idx++}`); params.push(data.subjectId); }
@@ -124,7 +124,7 @@ export class PostgresTeacherProgramRepository implements TeacherProgramRepositor
 
   async updateLabSubmission(submissionId: string, data: Partial<Omit<LabSubmissionData, 'id'>>): Promise<void> {
     const sets: string[] = [];
-    const params: any[] = [];
+    const params: (string | number | null | undefined)[] = [];
     let idx = 1;
 
     if (data.studentId !== undefined) { sets.push(`student_id = $${idx++}`); params.push(data.studentId); }

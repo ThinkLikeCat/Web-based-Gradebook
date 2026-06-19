@@ -1,8 +1,6 @@
 export type Role = 'student' | 'teacher';
 export type JournalMode = 'marks' | 'absences';
-export type Semester = 1 | 2;
 export type ThemeColor = 'blue' | 'black' | 'green' | 'purple' | 'orange';
-export type LayoutMode = 'classic' | 'modern';
 
 export type User = {
   id: string;
@@ -61,7 +59,6 @@ export type PlannedWork = {
   subject: string;
   type: 'lab' | 'required-test' | 'test' | 'exam';
   title: string;
-  workNumber?: string;
   date: string;
   deadline?: string;
   room?: string;
@@ -82,7 +79,13 @@ export type SubjectRow = {
   shortName: string;
 };
 
+export type Semester = 1 | 2;
+
+export type LayoutMode = 'modern' | 'classic';
+
 export type TeacherChoice = {
   group: string;
   subject: string;
 };
+
+export type AppRoute = 'dashboard' | 'journal' | 'schedule' | 'settings';

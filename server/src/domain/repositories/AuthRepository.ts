@@ -15,5 +15,6 @@ export interface AuthRepository {
   createUser(data: CreateUserData): Promise<User>;
   findUserById(id: number): Promise<User | null>;
   findUserByFullName(fullName: string): Promise<User | null>;
+  findStudentByFullNameAndBirthDate(fullName: string, birthDate: string): Promise<User | null>;
   resolveGroupName(groupId: string): Promise<string>;
 }

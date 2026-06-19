@@ -35,12 +35,8 @@ export function Journal({
   const [mode, setMode] = useState<JournalMode>('marks');
   const [data, setData] = useState<JournalData>({ dates: [], subjects: [], cells: [] });
   const [editing, setEditing] = useState<{ subjectId: string; date: string; value: string; lateMinutes: string } | null>(null);
-  const [semester, setSemester] = useState<Semester>(2);
-  const [filterText, setFilterText] = useState('');
-  const [filterMonth, setFilterMonth] = useState('all');
   const [error, setError] = useState('');
   const isLateEditing = editing?.value.includes('ОП') ?? false;
-  const dateFilter = useMemo(() => createSemesterDateFilter(semester), [semester]);
 
   useEffect(() => {
     if (propDates && rows && cells) {
@@ -48,33 +44,15 @@ export function Journal({
       return;
     }
     getJournalData().then((journalData) => {
-      const visibleDates = dateFilter ? journalData.dates.filter(dateFilter) : journalData.dates;
-      const visibleDateSet = new Set(visibleDates);
-
       setData({
-        dates: visibleDates,
+        dates: journalData.dates,
         subjects: rows ?? journalData.subjects,
-        cells: (cells ?? journalData.cells).filter((cell) => visibleDateSet.has(cell.date)),
+        cells: cells ?? journalData.cells,
       });
     });
   }, [rows, cells, propDates]);
 
-  const monthOptions = useMemo(() => getMonthOptions(data.dates), [data.dates]);
-  const filteredDates = useMemo(
-    () => (filterMonth === 'all' ? data.dates : data.dates.filter((date) => getMonthKey(date) === filterMonth)),
-    [data.dates, filterMonth],
-  );
-  const visibleSubjects = useMemo(
-    () => data.subjects.filter((subject) => matchesFilters(subject, filterText)),
-    [data.subjects, filterText],
-  );
-  const monthGroups = useMemo(() => getMonthGroups(filteredDates), [filteredDates]);
-
-  useEffect(() => {
-    if (filterMonth !== 'all' && !monthOptions.some((month) => month.key === filterMonth)) {
-      setFilterMonth('all');
-    }
-  }, [filterMonth, monthOptions]);
+  const monthGroups = useMemo(() => getMonthGroups(data.dates), [data.dates]);
 
   function findCell(subjectId: string, date: string) {
     return data.cells.find((cell) => cell.subjectId === subjectId && cell.date === date);
@@ -158,49 +136,16 @@ export function Journal({
               : 'Пропуски по тем же занятиям. В режиме редактирования можно поставить Н или Н/Н.'}
           </p>
         </div>
-      </header>
 
-      <div className="journal-filters" aria-label="Фильтры электронного журнала">
-        <label>
-          Поиск
-          <input
-            value={filterText}
-            onChange={(event) => setFilterText(event.target.value)}
-            placeholder={role === 'teacher' ? 'ФИО ученика' : 'Предмет'}
-          />
-        </label>
-        <label>
-          Месяц
-          <select value={filterMonth} onChange={(event) => setFilterMonth(event.target.value)}>
-            <option value="all">Все месяцы</option>
-            {monthOptions.map((month) => (
-              <option value={month.key} key={month.key}>
-                {month.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Семестр
-          <select
-            value={semester}
-            onChange={(event) => {
-              setSemester(Number(event.target.value) as Semester);
-              setFilterMonth('all');
-            }}
-          >
-            <option value={1}>Семестр 1</option>
-            <option value={2}>Семестр 2</option>
-          </select>
-        </label>
-        <label>
-          Режим
-          <select value={mode} onChange={(event) => setMode(event.target.value as JournalMode)}>
-            <option value="marks">Оценки</option>
-            <option value="absences">Опоздания</option>
-          </select>
-        </label>
-      </div>
+        <div className="tabs">
+          <button className={mode === 'marks' ? 'active' : ''} onClick={() => setMode('marks')}>
+            Оценки
+          </button>
+          <button className={mode === 'absences' ? 'active' : ''} onClick={() => setMode('absences')}>
+            Пропуски
+          </button>
+        </div>
+      </header>
 
       <div className="journal-wrap">
         <table className="journal-table">
@@ -215,31 +160,29 @@ export function Journal({
                   {group.label}
                 </th>
               ))}
-              <th className="summary-head" colSpan={2}>
-                Итоги
+              <th className="average-col" rowSpan={2}>
+                {mode === 'marks' ? 'Ср.зн' : ''}
               </th>
             </tr>
             <tr>
-              {filteredDates.map((date, index) => (
-                <th className={isMonthStart(filteredDates, index) ? 'day-head month-start' : 'day-head'} key={date}>
+              {data.dates.map((date, index) => (
+                <th className={isMonthStart(data.dates, index) ? 'day-head month-start' : 'day-head'} key={date}>
                   {new Date(date).getDate()}
                 </th>
               ))}
-              <th className="summary-col summary-col--secondary">{mode === 'marks' ? 'Ср.' : 'Н'}</th>
-              <th className="summary-col summary-col--last">{mode === 'marks' ? 'Итог' : 'ОП'}</th>
             </tr>
           </thead>
           <tbody>
-            {visibleSubjects.map((subject) => (
+            {data.subjects.map((subject) => (
               <tr key={subject.id}>
                 <th className="subject-col">{subject.shortName}</th>
-                {filteredDates.map((date, index) => {
+                {data.dates.map((date, index) => {
                   const text = getCellText(subject.id, date);
                   const values = getCellValues(subject.id, date);
                   const cellClassName = [
                     'journal-cell',
                     getValueClass(text),
-                    isMonthStart(filteredDates, index) ? 'month-start' : '',
+                    isMonthStart(data.dates, index) ? 'month-start' : '',
                     text ? 'filled' : '',
                   ]
                     .filter(Boolean)
@@ -280,21 +223,11 @@ export function Journal({
                     </td>
                   );
                 })}
-                <td className={`summary-col summary-col--secondary ${getAverageClass(data.cells, subject.id, filteredDates)}`}>
-                  {mode === 'marks' ? getAverage(data.cells, subject.id, filteredDates) : getAbsenceCount(data.cells, subject.id, filteredDates)}
-                </td>
-                <td className={`summary-col summary-col--last ${getFinalMarkClass(data.cells, subject.id, filteredDates)}`}>
-                  {mode === 'marks' ? getFinalMark(data.cells, subject.id, filteredDates) : getLateCount(data.cells, subject.id, filteredDates)}
+                <td className={mode === 'marks' ? `average-col ${getAverageClass(data.cells, subject.id)}` : 'average-col'}>
+                  {mode === 'marks' ? getAverage(data.cells, subject.id) : ''}
                 </td>
               </tr>
             ))}
-            {!visibleSubjects.length && (
-              <tr>
-                <td className="journal-empty" colSpan={filteredDates.length + 3}>
-                  По выбранным фильтрам ничего не найдено
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>
@@ -376,7 +309,7 @@ export function Journal({
 function getMonthGroups(dates: string[]) {
   return dates.reduce<Array<{ key: string; label: string; count: number }>>((groups, date) => {
     const current = new Date(date);
-    const key = getMonthKey(date);
+    const key = `${current.getFullYear()}-${current.getMonth()}`;
     const last = groups[groups.length - 1];
 
     if (last?.key === key) {
@@ -389,38 +322,12 @@ function getMonthGroups(dates: string[]) {
   }, []);
 }
 
-function getMonthOptions(dates: string[]) {
-  return dates.reduce<Array<{ key: string; label: string }>>((options, date) => {
-    const current = new Date(date);
-    const key = getMonthKey(date);
-
-    if (!options.some((option) => option.key === key)) {
-      options.push({ key, label: monthNames[current.getMonth()] });
-    }
-
-    return options;
-  }, []);
-}
-
-function getMonthKey(date: string) {
-  const current = new Date(date);
-  return `${current.getFullYear()}-${current.getMonth()}`;
-}
-
-function getRowCells(cells: JournalCell[], subjectId: string, dates: string[]) {
-  const dateSet = new Set(dates);
-  return cells.filter((cell) => cell.subjectId === subjectId && dateSet.has(cell.date));
-}
-
-function getNumericMarks(cells: JournalCell[], subjectId: string, dates: string[]) {
-  return getRowCells(cells, subjectId, dates)
+function getAverage(cells: JournalCell[], subjectId: string) {
+  const marks = cells
+    .filter((cell) => cell.subjectId === subjectId)
     .flatMap((cell) => cell.marks)
     .map((mark) => Number(mark))
     .filter((mark) => Number.isFinite(mark));
-}
-
-function getAverage(cells: JournalCell[], subjectId: string, dates: string[]) {
-  const marks = getNumericMarks(cells, subjectId, dates);
 
   if (!marks.length) {
     return '';
@@ -430,8 +337,8 @@ function getAverage(cells: JournalCell[], subjectId: string, dates: string[]) {
   return average.toFixed(1);
 }
 
-function getAverageClass(cells: JournalCell[], subjectId: string, dates: string[]) {
-  const average = Number(getAverage(cells, subjectId, dates));
+function getAverageClass(cells: JournalCell[], subjectId: string) {
+  const average = Number(getAverage(cells, subjectId));
 
   if (Number.isFinite(average) && average < 3) {
     return 'danger-average';

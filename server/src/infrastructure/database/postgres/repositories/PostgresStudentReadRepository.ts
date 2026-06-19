@@ -1,4 +1,4 @@
-import { Pool } from 'pg';
+import { Pool, QueryResultRow } from 'pg';
 import { StudentReadRepository } from '../../../../domain/repositories/StudentReadRepository';
 import { Student } from '../../../../domain/entities/Student';
 import { Course } from '../../../../domain/entities/Course';
@@ -9,6 +9,24 @@ import { LabSubmission } from '../../../../domain/entities/LabSubmission';
 import { StudentId } from '../../../../domain/value-objects/StudentId';
 import { CourseId } from '../../../../domain/value-objects/CourseId';
 import { LabWorkId } from '../../../../domain/value-objects/LabWorkId';
+
+interface CourseRow extends QueryResultRow {
+  id: string;
+  name: string;
+  teacher_name: string;
+  schedule: Array<{ day: string; time: string; room: string }>;
+}
+
+interface LabRow extends QueryResultRow {
+  id: string;
+  subject_id: string;
+  title: string;
+  issue_date: string;
+  due_date: string;
+  team_work: boolean;
+  theory_materials: string;
+  partners: Array<{ id: string; name: string }>;
+}
 
 export class PostgresStudentReadRepository implements StudentReadRepository {
   constructor(private readonly pool: Pool) {}
@@ -31,7 +49,7 @@ export class PostgresStudentReadRepository implements StudentReadRepository {
        GROUP BY c.id, c.name, c.teacher_name`,
       [studentId],
     );
-    return result.rows.map((r: any) => ({
+    return result.rows.map((r: CourseRow) => ({
       course: new Course(new CourseId(r.id), r.name, r.teacher_name, r.schedule),
     }));
   }
@@ -69,7 +87,7 @@ export class PostgresStudentReadRepository implements StudentReadRepository {
       [courseId],
     );
     if (result.rows.length === 0) return null;
-    const r = result.rows[0];
+    const r = result.rows[0] as CourseRow;
     return new Course(new CourseId(r.id), r.name, r.teacher_name, r.schedule);
   }
 
@@ -84,7 +102,7 @@ export class PostgresStudentReadRepository implements StudentReadRepository {
        GROUP BY c.id, c.name, c.teacher_name`,
       [courseIds],
     );
-    return result.rows.map((r: any) => new Course(new CourseId(r.id), r.name, r.teacher_name, r.schedule));
+    return result.rows.map((r: CourseRow) => new Course(new CourseId(r.id), r.name, r.teacher_name, r.schedule));
   }
 
   async findLabWorkById(labId: string): Promise<LabWork | null> {
@@ -98,7 +116,7 @@ export class PostgresStudentReadRepository implements StudentReadRepository {
       [labId],
     );
     if (result.rows.length === 0) return null;
-    const r = result.rows[0];
+    const r = result.rows[0] as LabRow;
     return new LabWork(new LabWorkId(r.id), r.subject_id, r.title, r.issue_date, r.due_date, r.team_work, r.theory_materials, r.partners);
   }
 
