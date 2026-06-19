@@ -9,7 +9,22 @@ const themeOptions: Array<{ value: ThemeColor; label: string }> = [
   { value: 'orange', label: 'Оранжевый' },
 ];
 
-export function SettingsPage({ theme, onThemeChange }: { theme: ThemeColor; onThemeChange: (theme: ThemeColor) => void }) {
+const layoutOptions: Array<{ value: LayoutMode; label: string; description: string }> = [
+  { value: 'classic', label: 'Старый вид', description: 'Боковое меню всегда видно слева.' },
+  { value: 'modern', label: 'Новый вид', description: 'Шапка сверху и меню по кнопке.' },
+];
+
+export function SettingsPage({
+  theme,
+  layoutMode,
+  onThemeChange,
+  onLayoutModeChange,
+}: {
+  theme: ThemeColor;
+  layoutMode: LayoutMode;
+  onThemeChange: (theme: ThemeColor) => void;
+  onLayoutModeChange: (mode: LayoutMode) => void;
+}) {
   return (
     <section className="settings-page">
       <header className="page-head">
@@ -46,6 +61,23 @@ export function SettingsPage({ theme, onThemeChange }: { theme: ThemeColor; onTh
             Текущая тема: <strong style={{ color: 'var(--accent)' }}>{themeOptions.find(t => t.value === theme)?.label}</strong>
           </p>
         )}
+      </section>
+
+      <section className="panel settings-panel">
+        <h2>Вид сайта</h2>
+        <div className="layout-grid">
+          {layoutOptions.map((option) => (
+            <button
+              className={layoutMode === option.value ? 'layout-option active' : 'layout-option'}
+              key={option.value}
+              onClick={() => onLayoutModeChange(option.value)}
+              type="button"
+            >
+              <strong>{option.label}</strong>
+              <span>{option.description}</span>
+            </button>
+          ))}
+        </div>
       </section>
     </section>
   );
