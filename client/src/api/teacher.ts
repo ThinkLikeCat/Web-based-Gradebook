@@ -81,3 +81,16 @@ export async function saveAttendance(studentId: string, lessonId: string, status
     body: { studentId, lessonId, status },
   });
 }
+
+export async function addLesson(data: {
+  subjectId: string;
+  groupId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+}): Promise<void> {
+  await apiRequest('/api/teacher/lesson', {
+    method: 'POST',
+    body: data,
+  });
+}

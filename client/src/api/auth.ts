@@ -50,6 +50,7 @@ export async function loginStudent(payload: StudentLoginPayload): Promise<User> 
       lastName: studentAuth.lastName,
       fullName: studentAuth.fullName,
       group: studentAuth.group,
+      studentId: studentAuth.id,
     };
   }
 

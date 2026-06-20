@@ -36,6 +36,7 @@ export function Journal({
   const [data, setData] = useState<JournalData>({ dates: [], subjects: [], cells: [] });
   const [editing, setEditing] = useState<{ subjectId: string; date: string; value: string; lateMinutes: string } | null>(null);
   const [error, setError] = useState('');
+  const [loadError, setLoadError] = useState('');
   const isLateEditing = editing?.value.includes('ОП') ?? false;
 
   useEffect(() => {
@@ -43,13 +44,18 @@ export function Journal({
       setData({ dates: propDates, subjects: rows, cells });
       return;
     }
-    getJournalData().then((journalData) => {
-      setData({
-        dates: journalData.dates,
-        subjects: rows ?? journalData.subjects,
-        cells: cells ?? journalData.cells,
+    setLoadError('');
+    getJournalData()
+      .then((journalData) => {
+        setData({
+          dates: journalData.dates,
+          subjects: rows ?? journalData.subjects,
+          cells: cells ?? journalData.cells,
+        });
+      })
+      .catch((err) => {
+        setLoadError(err instanceof Error ? err.message : 'Не удалось загрузить журнал');
       });
-    });
   }, [rows, cells, propDates]);
 
   const monthGroups = useMemo(() => getMonthGroups(data.dates), [data.dates]);
@@ -146,6 +152,8 @@ export function Journal({
           </button>
         </div>
       </header>
+
+      {loadError && <div className="async-state" style={{ margin: '1rem 0' }}><span className="form-error">{loadError}</span></div>}
 
       <div className="journal-wrap">
         <table className="journal-table">
